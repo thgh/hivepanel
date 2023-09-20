@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  hive:
+    image: thgh/hivepanel
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 23099:80
+      # Vite, te be fixed
+      - 24678:24678

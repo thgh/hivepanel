@@ -1,0 +1,12 @@
+.eslintrc.json
+.github
+.gitignore
+.prettierrc
+.vscode
+docker-compose.yml
+Dockerfile
+HIVE-SPEC.md
+node_modules
+notes
+README.md
+recently-used

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hivepanel redirect</title>
+    <style>
+      body {
+        background-color: black;
+        color: white;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📦 Hivepanel redirect</h1>
+    <p>Choose which Hivepanel server should open this template?</p>
+    <pre id="pre"></pre>
+
+    <script>
+      window.addEventListener('message', (event) => {
+        const { data } = event
+        if (data && data.hive === 'prefer') {
+          const latest = Object.entries(localStorage)
+            .map(([origin, time]) => ({
+              origin,
+              at: Date.parse(time),
+            }))
+            .sort((a, b) => a.at - b.at)
+            .pop()
+          const message = latest
+            ? `Would you like to use ${event.origin}\ninstead of ${latest.origin}\nto open hivepanel templates?`
+            : 'Open hivepanel templates with ' + event.origin + '?'
+          if (confirm(message)) {
+            // This must come AFTER some user interaction because of browser security
+            localStorage.setItem(event.origin, new Date().toJSON())
+          }
+          pre.innerText = JSON.stringify(localStorage, null, 2)
+          event.source.postMessage({ hive: 'close' }, '*')
+        }
+      })
+
+      pre.innerText = JSON.stringify(localStorage, null, 2)
+    </script>
+  </body>
+</html>
