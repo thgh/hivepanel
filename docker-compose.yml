@@ -10,5 +10,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 23099:80
-      # Vite, te be fixed
-      - 24678:24678

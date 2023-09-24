@@ -1,5 +1,7 @@
 /node_modules
 /dist
+/bundle/*
+!/bundle/server.*
 
 /easypanel
 /notes

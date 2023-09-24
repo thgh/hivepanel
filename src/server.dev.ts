@@ -2,12 +2,12 @@
 import express from 'express'
 import { createServer } from 'vite'
 
-import { serverRouter } from './src/api'
-import { enableDNS } from './src/api/dns'
+import { serverRouter } from './api'
+import { enableDNS } from './api/dns'
 
 enableDNS()
 const app = express()
-const port = process.env.PORT || 23088
+const port = process.env.PORT || 23088 // Default in production is 80
 
 app.use(express.static('public'))
 app.use(express.json())

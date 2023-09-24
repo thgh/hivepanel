@@ -5,7 +5,13 @@ import { ThemeProvider } from '@/lib/theme'
 import { Sidebar } from './Sidebar'
 import { ScrollArea } from './ui/scroll-area'
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout({
+  children,
+  onboarding,
+}: {
+  children: ReactNode
+  onboarding?: boolean
+}) {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="grid grid-flow-col-dense w-full">

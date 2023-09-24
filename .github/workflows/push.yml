@@ -15,6 +15,10 @@ jobs:
       - name: Install packages
         run: yarn install --frozen-lockfile
       - run: yarn build
-      # - run: docker swarm init
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      - run: docker swarm init
+      - run: yarn test
+      # docker run -d -v /var/run/docker.sock:/var/run/docker.sock:ro -e PORT=23077 -p 23077:23077 thgh/hivepanel
+
+      # Build for real
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3

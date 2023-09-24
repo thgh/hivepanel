@@ -1,3 +1,5 @@
+import http from 'node:http'
+
 import axios from 'axios'
 import type {
   ContainerSpec,
@@ -5,8 +7,7 @@ import type {
   ServiceMode,
   ServiceSpec as DockerodeServiceSpec,
 } from 'dockerode'
-import { Request, Response } from 'express'
-import http from 'http'
+import type { Request, Response } from 'express'
 
 export const engine = axios.create({
   baseURL: 'http://localhost',

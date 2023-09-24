@@ -1,32 +1,27 @@
-import { Request, Response, Router } from 'express'
+import { Router } from 'express'
 
 import * as engine from './engine'
 import Networks from './middleware/Networks'
+import { onboardingMiddleware } from './middleware/onboarding'
+import { stateMiddleware } from './middleware/state'
 import UpdateConfig from './middleware/UpdateConfig'
 import * as stats from './stats'
 
 export const serverRouter = Router()
 
+// Core API routes
+serverRouter.use('/state', stateMiddleware)
+serverRouter.use('/onboarding', onboardingMiddleware)
+
+// Service spec middleware
 serverRouter.use(Networks)
 serverRouter.use(UpdateConfig)
 
-wrap('/engine', engine)
-wrap('/stats', stats)
+// Docker engine routes
+serverRouter.use('/engine', engine.USE)
+serverRouter.get('/stats', stats.GET)
 
+// Fallback
 serverRouter.use((req, res) => {
-  res.json({ message: 'Hello from the API!ff' })
+  res.json({ message: 'Hello from the API!' })
 })
-
-function wrap(prefix: string, methodHandlers: Handlers) {
-  if (methodHandlers.GET) serverRouter.get(prefix, methodHandlers.GET)
-  if (methodHandlers.POST) serverRouter.post(prefix, methodHandlers.POST)
-  if (methodHandlers.DELETE) serverRouter.delete(prefix, methodHandlers.DELETE)
-  if (methodHandlers.USE) serverRouter.use(prefix, methodHandlers.USE)
-}
-
-type Handlers = {
-  GET?: (req: Request, res: Response) => void
-  POST?: (req: Request, res: Response) => void
-  DELETE?: (req: Request, res: Response) => void
-  USE?: (req: Request, res: Response) => void
-}
