@@ -1,7 +1,7 @@
 import './globals.css'
 
 import axios from 'axios'
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { createBrowserRouter } from 'react-router-dom'
@@ -10,6 +10,16 @@ import useSWR from 'swr'
 import Layout from '@/components/Layout'
 
 import { Button } from './components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
 import { fetcher } from './lib/swr'
 import { ThemeProvider } from './lib/theme'
 import { OnboardingState, ServerState } from './lib/types'
@@ -70,6 +80,7 @@ function Onboarding() {
 }
 
 function WithoutDockerSwarm() {
+  const { mutate: mutateState } = useSWR<ServerState>('/api/state', { fetcher })
   const { data, error, mutate } = useSWR<OnboardingState>('/api/onboarding', {
     fetcher,
     refreshInterval: 3000,
@@ -90,7 +101,7 @@ function WithoutDockerSwarm() {
         <div className="flex gap-4">
           <Button
             onClick={async () => {
-              const ok = await axios.post('/api/onboarding/swarm-init')
+              const ok = await axios.post('/api/onboarding/init-swarm')
               mutate()
               if (ok.data?.message) alert(ok.data.message)
             }}
@@ -100,7 +111,7 @@ function WithoutDockerSwarm() {
           <Button
             variant="outline"
             onClick={async () => {
-              const ok = await axios.post('/api/onboarding/swarm-init')
+              const ok = await axios.post('/api/onboarding/join-swarm')
               mutate()
               if (ok.data?.message) alert(ok.data.message)
             }}
@@ -133,6 +144,57 @@ function WithoutDockerSwarm() {
       </OnboardingLayout>
     )
 
+  if (data.status === 401)
+    return (
+      <OnboardingLayout>
+        <AdminRedirect />
+        <form
+          className="text-left"
+          onSubmit={async (evt) => {
+            evt.preventDefault()
+            const data = new FormData(evt.target as HTMLFormElement)
+            const json = Object.fromEntries(data.entries())
+            const ok = await axios.post('/api/auth/login', json)
+            if (ok.status === 200) mutateState()
+            else if (ok.data?.message) alert(ok.data.message)
+          }}
+        >
+          <Card className="w-80">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Sign in</CardTitle>
+              <CardDescription>
+                Authenticate to access the control panel.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="text"
+                  name="email"
+                  placeholder="hive@example.org"
+                  autoComplete="email"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full">Sign in</Button>
+            </CardFooter>
+          </Card>
+        </form>
+      </OnboardingLayout>
+    )
+
   return (
     <OnboardingLayout>
       <p className="text-lg">TODO</p>
@@ -146,8 +208,8 @@ function WithoutDockerSwarm() {
 function OnboardingLayout({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="flex flex-col p-6 gap-4 h-screen text-center">
-        <div className="flex flex-col gap-4  flex-1 items-center justify-center">
+      <div className="flex flex-col p-6 gap-4 min-h-screen text-center">
+        <div className="flex flex-col gap-4 flex-1 items-center justify-center">
           {children}
         </div>
         <h1 className="text-4xl font-bold mt-16 text-slate-500">
@@ -156,4 +218,19 @@ function OnboardingLayout({ children }: { children: ReactNode }) {
       </div>
     </ThemeProvider>
   )
+}
+
+/** Autologin as admin */
+function AdminRedirect() {
+  const { mutate } = useSWR<OnboardingState>('/api/onboarding', { fetcher })
+  useEffect(() => {
+    if (window.location.hash.startsWith('#password=')) {
+      const password = window.location.hash.replace('#password=', '')
+      window.location.hash = ''
+      axios.post('/api/auth/login', { email: 'admin', password }).then(() => {
+        mutate()
+      })
+    }
+  }, [])
+  return null
 }

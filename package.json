@@ -3,8 +3,10 @@
   "description": "Get your swarm together with 📦 hivepanel, a Docker Swarm control panel",
   "version": "0.1.0",
   "private": true,
-  "main": "server.mjs",
-  "bin": "bin.mjs",
+  "bin": {
+    "hive": "bundle/bin.mjs",
+    "hivepanel": "bundle/bin.mjs"
+  },
   "scripts": {
     "dev": "vite-node --watch src/server.dev.ts",
     "build": "vite build && bunchee --target es2022",
@@ -52,6 +54,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@tanstack/react-table": "^8.10.1",
+    "@types/cookie-parser": "^1.4.4",
     "@types/dockerode": "^3.3.19",
     "@types/express": "^4.17.17",
     "@types/node": "^20.6.3",
@@ -69,6 +72,7 @@
     "classnames": "^2.3.2",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
+    "cookie-parser": "^1.4.6",
     "eslint": "^8.49.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.28.1",

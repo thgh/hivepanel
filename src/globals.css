@@ -65,6 +65,10 @@
   }
 }
 
+html {
+  background: black;
+}
+
 @layer base {
   * {
     @apply border-border;

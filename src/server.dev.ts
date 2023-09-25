@@ -4,12 +4,14 @@ import { createServer } from 'vite'
 
 import { serverRouter } from './api'
 import { enableDNS } from './api/dns'
+import { checkAuth, state } from './lib/state'
 
 enableDNS()
 const app = express()
 const port = process.env.PORT || 23088 // Default in production is 80
 
 app.use(express.static('public'))
+app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 app.use('/api', serverRouter)
 
@@ -25,8 +27,16 @@ if (global.closeSignal) {
 // First start
 global.viteInstance ||= await createServer({ server: { middlewareMode: true } })
 app.use(global.viteInstance.middlewares)
-const server = app.listen(port, () => {
-  console.log(`📦 Hivepanel is running on http://localhost:${port}`)
+const server = app.listen(port, async () => {
+  state.origin = `http://localhost:${port}`
+  const credentials = await checkAuth()
+  if (credentials) {
+    console.log(
+      `📦 Hivepanel is running on http://localhost:${port}/#password=${credentials.password}`
+    )
+  } else {
+    console.log(`📦 Hivepanel is running on http://localhost:${port}`)
+  }
 })
 global.closeSignal = new Promise((resolve) =>
   server.on('close', () => resolve(1))

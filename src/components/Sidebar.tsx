@@ -1,8 +1,10 @@
 'use client'
 
+import axios from 'axios'
 import {
   DatabaseBackupIcon,
   KeyRoundIcon,
+  LogOutIcon,
   NetworkIcon,
   RectangleHorizontalIcon,
   ServerIcon,
@@ -115,8 +117,19 @@ export function Sidebar({ className }: SidebarProps) {
             </Button>
           </div>
         </div>
-        <div className="px-7 ">
+        <div className="flex gap-3 px-7 ">
           <ThemeToggle />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={async () => {
+              await axios.post('/api/auth/logout')
+              window.location.reload()
+            }}
+          >
+            <LogOutIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </div>
       </div>
     </div>

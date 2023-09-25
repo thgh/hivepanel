@@ -4,14 +4,21 @@ import { exec } from 'node:child_process'
 import type { Swarm } from 'dockerode'
 import prompts from 'prompts'
 
+import { createServer } from '.'
 import { engine } from './lib/docker'
 
+main()
+
 // CLI
-;(async () => {
+async function main() {
   // Assume everything is ready to go
   const ok = await engine.get<Swarm>('/swarm', { validateStatus: () => true })
   if (ok.status < 222) {
     console.log('Docker Swarm is ready')
+    createServer(23088)
+    // Open browser if possible
+    exec('open http://localhost:23088')
+
     return
   }
 
@@ -23,10 +30,15 @@ import { engine } from './lib/docker'
     const response = await prompts({
       type: 'confirm',
       name: 'initSwarm',
-      message: 'Would you like to initialize a Docker swarm?',
+      message: 'Would you like to initialize a Docker Swarm?',
     })
-    console.log('You want to initialize Docker Swarm:', response)
-    return response
+    if (!response.initSwarm) return
+
+    const init = await new Promise((resolve) =>
+      exec('docker swarm init', (err) => resolve(!err))
+    )
+    console.log('Swarm initialized:', init)
+    return main()
   }
 
   // Docker is not running, can it be started?
@@ -40,7 +52,7 @@ import { engine } from './lib/docker'
       message: 'Would you like to start a Docker?',
     })
     console.log('You want to install docker:', response)
-    return response
+    return
   }
 
   // Docker is not installed, can it be installed?
@@ -50,4 +62,4 @@ import { engine } from './lib/docker'
     message: 'Would you like to install a Docker?',
   })
   console.log('You want to install docker:', response)
-})()
+}

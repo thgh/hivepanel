@@ -12,11 +12,15 @@ export type ServerState = {
   swarm?: Swarm
   swarmAt?: number
   swarmLabelBuffer?: Record<SwarmLabel, string>
+  origin?: string
+  fallbackPassword?: string
 }
 
 export type OnboardingState = {
   isDockerRunning?: boolean
   isDockerInstalled?: boolean
+  message?: string
+  status?: number
 }
 
 export type ServiceLabel =
@@ -42,3 +46,4 @@ export type SwarmLabel =
   | 'hive.panel.tint'
   /** Require authentication */
   | `${'hive.panel.user.'}${string}`
+  | `${'hive.session.'}${string}`

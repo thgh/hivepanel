@@ -1,6 +1,8 @@
 import { exec } from 'child_process'
+import { ClusterInfo } from 'dockerode'
 import { Request, Response } from 'express'
 
+import { engine } from '@/lib/docker'
 import { state } from '@/lib/state'
 
 export async function onboardingMiddleware(req: Request, res: Response) {
@@ -36,18 +38,46 @@ export async function onboardingMiddleware(req: Request, res: Response) {
     return
   }
 
-  if (req.method === 'POST' && req.url === '/swarm-init') {
+  if (req.method === 'POST' && req.url === '/init-swarm') {
     try {
       const ok = await new Promise((resolve) =>
         exec('docker swarm init', (err) => resolve(!err))
       )
+      for (let index = 0; index < 20; index++) {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const swarm = await engine.get<ClusterInfo>('/swarm')
+          console.log('got swarm', swarm.data.Spec)
+          const updated = await engine.post<
+            ClusterInfo,
+            any,
+            ClusterInfo['Spec']
+          >(
+            '/swarm/update',
+            {
+              ...swarm.data.Spec,
+              Labels: {
+                ...swarm.data.Spec.Labels,
+                ...state.swarmLabelBuffer,
+              },
+            },
+            { params: { version: swarm.data.Version?.Index } }
+          )
+          console.log('configured swarm', state.swarmLabelBuffer)
+          return res.json({
+            message: 'Swarm initialized successfully',
+          })
+        } catch (error: any) {
+          console.log('init', index, error.response?.data || error.message)
+        }
+      }
       return res.json({
         message: ok ? 'Initializing swarm...' : 'Failed to init swarm',
       })
       // const ok = await engine.post('/swarm/init', {})
       // return res.json({ message: 'Creating swarm...', data: ok.data })
     } catch (error: any) {
-      console.log('init', error.response?.data)
+      console.log('init', error.response?.data || error.message)
       return res.json({ message: error.message })
     }
   }
