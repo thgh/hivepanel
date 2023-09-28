@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { Service } from './docker'
+import type { Service } from './docker'
 
 export const engine = axios.create({
   baseURL: '/api/engine',

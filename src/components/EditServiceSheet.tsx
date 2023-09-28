@@ -1,6 +1,6 @@
 'use client'
 
-import { ContainerTaskSpec } from 'dockerode'
+import type { ContainerTaskSpec } from 'dockerode'
 import { useState } from 'react'
 
 import {

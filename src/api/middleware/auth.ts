@@ -24,8 +24,8 @@ export async function authMiddleware(
       req.session = session
       return next()
     }
+    console.log(req.url, 'invalid session', sessionId)
   }
-  console.log('authMiddleware', req.cookies[SESSION], req.body)
 
   if (req.method === 'POST' && req.url === '/auth/login') {
     const { email, password } = req.body
@@ -37,8 +37,9 @@ export async function authMiddleware(
       swarm.set(`hive.session.${sessionId}`, JSON.stringify({ email }))
       res.cookie(SESSION, sessionId, {
         httpOnly: true,
-        secure: true,
+        path: '/',
         sameSite: 'strict',
+        secure: true,
       })
       return res.json({ message: 'Logged in', sessionId, email })
     } else {

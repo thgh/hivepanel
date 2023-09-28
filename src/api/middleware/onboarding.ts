@@ -1,9 +1,10 @@
-import { exec } from 'child_process'
-import { ClusterInfo } from 'dockerode'
-import { Request, Response } from 'express'
+import { exec } from 'node:child_process'
+
+import type { Swarm } from 'dockerode'
+import type { Request, Response } from 'express'
 
 import { engine } from '@/lib/docker'
-import { state } from '@/lib/state'
+import { isDockerRunning, state, swarm } from '@/lib/state'
 
 export async function onboardingMiddleware(req: Request, res: Response) {
   // check if docker command is installed on the system using `which`
@@ -11,9 +12,7 @@ export async function onboardingMiddleware(req: Request, res: Response) {
     exec('which docker', (err) => resolve(!err))
   )
 
-  const isDockerRunning = await new Promise((resolve) =>
-    exec('docker info', (err) => resolve(!err))
-  )
+  const isDockerRunning2 = await isDockerRunning()
 
   if (req.method === 'POST' && req.url === '/install-docker') {
   }
@@ -46,24 +45,9 @@ export async function onboardingMiddleware(req: Request, res: Response) {
       for (let index = 0; index < 20; index++) {
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000))
-          const swarm = await engine.get<ClusterInfo>('/swarm')
-          console.log('got swarm', swarm.data.Spec)
-          const updated = await engine.post<
-            ClusterInfo,
-            any,
-            ClusterInfo['Spec']
-          >(
-            '/swarm/update',
-            {
-              ...swarm.data.Spec,
-              Labels: {
-                ...swarm.data.Spec.Labels,
-                ...state.swarmLabelBuffer,
-              },
-            },
-            { params: { version: swarm.data.Version?.Index } }
-          )
-          console.log('configured swarm', state.swarmLabelBuffer)
+          const newSwarm = await engine.get<Swarm>('/swarm')
+          const migrated = await swarm.migrate(newSwarm.data)
+          console.log('migrated swarm', migrated)
           return res.json({
             message: 'Swarm initialized successfully',
           })
@@ -84,6 +68,6 @@ export async function onboardingMiddleware(req: Request, res: Response) {
 
   res.json({
     isDockerInstalled,
-    isDockerRunning,
+    isDockerRunning: isDockerRunning2,
   })
 }

@@ -9,15 +9,18 @@
   },
   "scripts": {
     "dev": "vite-node --watch src/server.dev.ts",
-    "build": "vite build && bunchee --target es2022",
+    "build": "vite build && bunchee --target es2022 --external ./index && node bunchee-patch.js",
     "start": "node server.mjs",
     "cli": "node bin.mjs",
+    "test": "vitest",
+    "testleave": "FORCE_LEAVE_SWARM=1 vitest",
     "lint": "eslint --fix \"src/**\" && prettier -l --write .",
     "fix": "prettier --write .",
     "docker": "yarn dbuild && yarn drun",
     "dbuild": "yarn build && docker build . -t thgh/hivepanel",
-    "dbuildx": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8 --push",
-    "drun": "docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock:ro -e PORT=23077 -p 23077 thgh/hivepanel",
+    "dbuildx": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8",
+    "dbuildxp": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8 --push",
+    "drun": "docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock:ro -e PORT=23077 -p 23077:23077 thgh/hivepanel",
     "dpush": "docker push thgh/hivepanel"
   },
   "exports": {

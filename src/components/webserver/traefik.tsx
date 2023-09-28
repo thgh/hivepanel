@@ -1,4 +1,4 @@
-import { ServiceSpec } from '@/lib/docker'
+import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
 import { refreshServices } from '@/lib/useRefresh'
 

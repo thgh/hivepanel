@@ -1,3 +1,4 @@
+import { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 
 import express from 'express'
@@ -17,18 +18,22 @@ export function createServer(port: number) {
     res.sendFile(__dirname + '/dist/index.html')
   })
 
-  const server = app.listen(port, async () => {
-    // If given port was 0, the actual port is assigned dynamically
-    const port = (server.address() as AddressInfo).port
-    state.origin = `http://localhost:${port}`
-    const credentials = await checkAuth()
-    if (credentials) {
-      console.log(
-        `📦 Hivepanel is running on http://localhost:${port}/#password=${credentials.password}`
-      )
-    } else {
-      console.log(`📦 Hivepanel is running on http://localhost:${port}`)
-    }
+  return new Promise<Server>((resolve) => {
+    const server = app.listen(port, async () => {
+      // If given port was 0, the actual port is assigned dynamically
+      const port = (server.address() as AddressInfo).port
+      state.origin = `http://localhost:${port}`
+      const credentials = await checkAuth().catch((err) => {
+        console.log(err)
+      })
+      if (credentials) {
+        console.log(
+          `📦 Hivepanel is running on http://localhost:${port}/#password=${credentials.password}`
+        )
+      } else {
+        console.log(`📦 Hivepanel is running on http://localhost:${port}`)
+      }
+      resolve(server)
+    })
   })
-  return server
 }

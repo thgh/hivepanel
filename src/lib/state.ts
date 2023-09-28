@@ -15,10 +15,26 @@ export const swarm = {
     )
       .filter(([key]) => key.startsWith('hive.panel.user.'))
       .map(([key, value]) => [key.replace('hive.panel.user.', ''), value])
-    if (!users.length)
-      console.log('no users', state.swarm?.Spec, state.swarmLabelBuffer)
+    // if (!users.length)
+    //   console.log('no users', state.swarm?.Spec, state.swarmLabelBuffer)
     // @ts-expect-error
     return users.length ? new Map(users) : new Map()
+  },
+  async migrate(swarm: Swarm) {
+    state.swarm = swarm
+    state.swarm.Spec.Labels = {
+      ...state.swarm.Spec.Labels,
+      ...state.swarmLabelBuffer,
+    }
+    const ok = await engine.post(
+      '/swarm/update',
+      {
+        ...state.swarm.Spec,
+        Labels: { ...state.swarm.Spec.Labels, ...state.swarmLabelBuffer },
+      },
+      { params: { version: state.swarm.Version?.Index } }
+    )
+    delete state.swarmLabelBuffer
   },
   get(key: SwarmLabel) {
     return state.swarm?.Spec
@@ -63,7 +79,7 @@ export async function checkAuth() {
   if (!state.fallbackPassword) {
     state.fallbackPassword = password
     swarm.set('hive.panel.user.admin', password)
-    console.log('Generated default credentials')
+    console.log('🔐 Generated default credentials')
   }
 
   return { email: 'admin', password }
@@ -79,6 +95,7 @@ export async function isDockerRunning({ revalidate = 10 } = {}) {
   try {
     const ok = await engine.get('/containers/json', {
       validateStatus: () => true,
+      timeout: 1000,
     })
     state.isDockerRunning = Array.isArray(ok.data)
   } catch (error) {

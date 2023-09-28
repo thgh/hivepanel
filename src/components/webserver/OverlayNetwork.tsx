@@ -1,4 +1,4 @@
-import { NetworkCreateOptions } from 'dockerode'
+import type { NetworkCreateOptions } from 'dockerode'
 
 import { engine } from '@/lib/docker-client'
 import { refreshServices } from '@/lib/useRefresh'

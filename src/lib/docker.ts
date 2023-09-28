@@ -56,6 +56,7 @@ export type Service = {
   PreviousSpec?: ServiceSpec
   Spec: ServiceSpec
   Endpoint: DockerodeService['Endpoint']
+  memory: number
 }
 
 export type Task = {

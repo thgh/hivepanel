@@ -13,11 +13,12 @@ import { EnableTraefik } from '@/components/webserver/traefik'
 import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
-import { useServices } from '@/lib/swr'
+import { useServices, useServicesWithMemory } from '@/lib/swr'
 
 export default function ServiceList() {
   const [live, setLive] = useState(0)
   const swr = useServices()
+  const withMemory = useServicesWithMemory()
   const launch = async (name: string) => {
     const Name =
       name === 'hivepanel' ? 'hivepanel' : prompt('Service name', name)
@@ -148,10 +149,10 @@ export default function ServiceList() {
           </span>
           Services{' '}
           <span className="text-muted-foreground ml-2">
-            {swr.data?.data?.length}
+            {withMemory?.length}
           </span>
         </h1>
-        <ServiceTable data={swr.data?.data || []} />
+        <ServiceTable data={withMemory || []} />
         <div className="h-12"></div>
         <OverlayNetworkButton />
         <EnableCaddy />

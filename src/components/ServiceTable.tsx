@@ -43,7 +43,8 @@ export const columns: ColumnDef<Service>[] = [
     },
   },
   {
-    accessorKey: 'Spec.Labels',
+    id: 'labels',
+    accessorFn: (row) => row.Spec?.Labels?.['hive.tint'],
     header: ({ column }) => <SortButton column={column}>Labels</SortButton>,
     cell: ({ row }) => {
       const labels: Record<string, string> = row.getValue('Spec_Labels')
@@ -196,8 +197,7 @@ export const columns: ColumnDef<Service>[] = [
   // },
   {
     id: 'memory',
-    accessorFn: (row) =>
-      row.Spec.TaskTemplate?.Resources?.Limits?.MemoryBytes || Infinity,
+    accessorKey: 'memory',
     header: ({ column }) => (
       <div className="text-right">
         <SortButton column={column} alignRight>
@@ -206,18 +206,13 @@ export const columns: ColumnDef<Service>[] = [
       </div>
     ),
     cell: ({ row }) => {
-      const stats = useSWR<Dated<TaskAndStats[]>>('/api/stats', fetcher, {
-        refreshInterval: 30000,
-      }).data?.data.filter(({ task }) => task.ServiceID === row.original.ID)
       const max = row.original.Spec.TaskTemplate?.Resources?.Limits?.MemoryBytes
-      const sum = stats?.reduce(
-        (sum, { stats }) => sum + (stats?.memory_stats?.usage || 0),
-        0
-      )
+      const memory = row.original.memory
       return (
         <div
           className={
-            'text-right ' + (!sum && !max ? 'opacity-0 hover:opacity-100' : '')
+            'text-right ' +
+            (!memory && !max ? 'opacity-0 hover:opacity-100' : '')
           }
         >
           <Button
@@ -248,12 +243,12 @@ export const columns: ColumnDef<Service>[] = [
               refreshServices()
             }}
           >
-            {sum ? formatBytes(sum) : undefined}
+            {memory ? formatBytes(memory) : undefined}
             <span className="text-muted-foreground">
-              {sum && max ? <>&nbsp;/ </> : ''}
-              {!sum && max ? 'Max ' : ''}
+              {memory && max ? <>&nbsp;/ </> : ''}
+              {!memory && max ? 'Max ' : ''}
               {max ? formatBytes(max) : ''}
-              {!sum && !max ? 'Set limit...' : ''}
+              {!memory && !max ? 'Set limit...' : ''}
             </span>
           </Button>
         </div>

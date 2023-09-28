@@ -4,7 +4,7 @@ import { exec } from 'node:child_process'
 import type { Swarm } from 'dockerode'
 import prompts from 'prompts'
 
-import { createServer } from '.'
+import { createServer } from './index'
 import { engine } from './lib/docker'
 
 main()

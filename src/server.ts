@@ -1,5 +1,6 @@
-const { createServer } = require('./index.cjs')
+import { createServer } from './index'
 
+// Default port in dev is 23088
 const port = parseInt(process.env.PORT || '80')
 createServer(port)
 
