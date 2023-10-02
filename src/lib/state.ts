@@ -1,4 +1,7 @@
-import type { Swarm } from 'dockerode'
+import { exec } from 'node:child_process'
+
+import type { NetworkCreateOptions, Swarm } from 'dockerode'
+import { SWRResponse } from 'swr'
 
 import { engine } from './docker'
 import { str62 } from './random'
@@ -26,15 +29,30 @@ export const swarm = {
       ...state.swarm.Spec.Labels,
       ...state.swarmLabelBuffer,
     }
-    const ok = await engine.post(
-      '/swarm/update',
-      {
-        ...state.swarm.Spec,
-        Labels: { ...state.swarm.Spec.Labels, ...state.swarmLabelBuffer },
-      },
-      { params: { version: state.swarm.Version?.Index } }
-    )
+    const spec = {
+      ...state.swarm.Spec,
+      Labels: { ...state.swarm.Spec.Labels, ...state.swarmLabelBuffer },
+    }
+    const ok = await engine.post('/swarm/update', spec, {
+      params: { version: state.swarm.Version?.Index },
+    })
+    if (ok.status >= 300) throw new Error('Failed to migrate swarm')
     delete state.swarmLabelBuffer
+
+    const network = await engine.post<SWRResponse, any, NetworkCreateOptions>(
+      '/networks/create',
+      {
+        Attachable: true,
+        CheckDuplicate: true,
+        Driver: 'overlay',
+        Name: 'hivenet',
+      },
+      { validateStatus: () => true }
+    )
+    if (network.status !== 409 && network.status !== 200) {
+      console.log('Failed to create network', network.status, network.data)
+    }
+    return { swarm }
   },
   get(key: SwarmLabel) {
     return state.swarm?.Spec
@@ -114,4 +132,23 @@ export async function isSwarmManager({ revalidate = 10 } = {}) {
   state.swarmAt = Date.now()
   state.swarm = ok.status < 222 ? ok.data : undefined
   return !!state.swarm
+}
+
+export async function diskStats({ revalidate = 10 } = {}) {
+  return new Promise<{ totaldisk: number; freedisk: number }>(
+    (resolve, reject) => {
+      exec(`df -k / | awk 'NR==2{print $2,$4}'`, (err, stdout, stderr) => {
+        if (err) {
+          console.error('diskStats:', stderr)
+          reject(err)
+        } else {
+          const [totaldisk, freedisk] = stdout
+            .split(' ')
+            .map(Number)
+            .map((n) => n * 1024)
+          resolve({ totaldisk, freedisk })
+        }
+      })
+    }
+  )
 }

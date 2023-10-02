@@ -14,7 +14,7 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { useServices } from '@/lib/swr'
+import { useNodes, useServices } from '@/lib/swr'
 import { cn } from '@/lib/utils'
 
 import { ThemeToggle } from './ThemeToggle'
@@ -28,6 +28,7 @@ export function Sidebar({ className }: SidebarProps) {
   const is = (match: string) => (path === '/' + match ? 'default' : 'ghost')
 
   const services = useServices()
+  const nodes = useNodes()
   const sorted = (services.data?.data || []).sort(
     (a, b) => b.UpdatedAt?.localeCompare(a.UpdatedAt!) || 0
   )
@@ -72,18 +73,20 @@ export function Sidebar({ className }: SidebarProps) {
             Cluster
           </h2>
           <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start">
-              <NetworkIcon className="mr-2 h-4 w-4" />
-              Manager
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => alert('todo')}
-            >
-              <ServerIcon className="mr-2 h-4 w-4" />
-              Worker 1
-            </Button>
+            {nodes.data?.data?.map((node) => (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => alert('todo')}
+              >
+                {node.Spec.Role === 'manager' ? (
+                  <NetworkIcon className="mr-2 h-4 w-4" />
+                ) : (
+                  <ServerIcon className="mr-2 h-4 w-4" />
+                )}
+                {node.Description.Hostname}
+              </Button>
+            ))}
           </div>
         </div>
         <div className="px-3 py-2">
@@ -91,13 +94,11 @@ export function Sidebar({ className }: SidebarProps) {
             Settings
           </h2>
           <div className="space-y-1">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => alert('add users & set password')}
-            >
-              <KeyRoundIcon className="mr-2 h-4 w-4" />
-              Authentication
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/settings/authentication">
+                <KeyRoundIcon className="mr-2 h-4 w-4" />
+                Authentication
+              </Link>
             </Button>
             <Button
               variant="ghost"

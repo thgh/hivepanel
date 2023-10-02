@@ -134,6 +134,52 @@ export type Task = {
   Name?: string
 }
 
+export type Node = {
+  ID: string
+  Version: {
+    Index: number
+  }
+  CreatedAt: string
+  UpdatedAt: string
+  Spec: {
+    Labels: Record<string, string>
+    Role: 'manager'
+    Availability: 'active'
+  }
+  Description: {
+    Hostname: string
+    Platform: {
+      Architecture: 'x86_64'
+      OS: 'linux'
+    }
+    Resources: {
+      NanoCPUs: number
+      MemoryBytes: number
+    }
+    Engine: {
+      EngineVersion: '24.0.2'
+      Plugins: {
+        Type: 'Volume' | 'Network' | 'Log'
+        Name: string
+      }[]
+    }
+    TLSInfo: {
+      TrustRoot: string
+      CertIssuerSubject: string
+      CertIssuerPublicKey: string
+    }
+  }
+  Status: {
+    State: 'ready'
+    Addr: string
+  }
+  ManagerStatus: {
+    Leader: boolean
+    Reachability: 'reachable'
+    Addr: string
+  }
+}
+
 /** Same as Dockerode without some undefineds */
 export type ServiceSpec = Omit<DockerodeServiceSpec, 'Labels'> & {
   Labels: Record<string, string | undefined>

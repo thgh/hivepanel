@@ -13,7 +13,8 @@ import { EnableTraefik } from '@/components/webserver/traefik'
 import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
-import { useServices, useServicesWithMemory } from '@/lib/swr'
+import { formatBytesRatio } from '@/lib/formatBytes'
+import { useServerState, useServices, useServicesWithMemory } from '@/lib/swr'
 
 export default function ServiceList() {
   const [live, setLive] = useState(0)
@@ -68,6 +69,7 @@ export default function ServiceList() {
     })
     swr.mutate()
   }
+  const { data, error } = useServerState()
 
   // const tasks = useSWR<Dated<Task[]>>('/api/engine/tasks', fetcher, {
   //   refreshInterval: 3000,
@@ -85,6 +87,21 @@ export default function ServiceList() {
 
   return (
     <>
+      <div className="pt-6 px-6 opacity-60 left-0 -mb-2 flex gap-12">
+        <span>RAM free {formatBytesRatio(data?.freemem, data?.totalmem)}</span>
+        <span>
+          Load{' '}
+          {data?.loadavg
+            ? (data?.loadavg).map((load) => load.toPrecision(2)).join(' ')
+            : ''}
+        </span>
+        <span>
+          Disk free{' '}
+          {data?.freedisk
+            ? formatBytesRatio(data.freedisk, data?.totaldisk)
+            : ''}
+        </span>
+      </div>
       <h1 className="pt-6 px-6 text-xl left-0 -mb-2">Launch new service</h1>
       <ScrollArea
         orientation="horizontal"

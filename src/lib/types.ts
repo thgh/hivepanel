@@ -14,6 +14,13 @@ export type ServerState = {
   swarmLabelBuffer?: Record<SwarmLabel, string>
   origin?: string
   fallbackPassword?: string
+
+  freemem?: number
+  totalmem?: number
+  loadavg?: number[]
+
+  freedisk?: number
+  totaldisk?: number
 }
 
 export type OnboardingState = {

@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { Outlet } from 'react-router-dom'
 
 import { ThemeProvider } from '@/lib/theme'
 
@@ -9,7 +10,7 @@ export default function Layout({
   children,
   onboarding,
 }: {
-  children: ReactNode
+  children?: ReactNode
   onboarding?: boolean
 }) {
   return (
@@ -18,7 +19,10 @@ export default function Layout({
         <div className="w-64 border-r">
           <Sidebar />
         </div>
-        <ScrollArea className="w-full h-screen">{children}</ScrollArea>
+        <ScrollArea className="w-full h-screen">
+          {children}
+          <Outlet />
+        </ScrollArea>
       </div>
     </ThemeProvider>
   )

@@ -20,9 +20,9 @@ import {
 } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
-import { fetcher } from './lib/swr'
+import { fetcher, useServerState } from './lib/swr'
 import { ThemeProvider } from './lib/theme'
-import { OnboardingState, ServerState } from './lib/types'
+import { OnboardingState } from './lib/types'
 import ServiceDetail from './services/detail'
 import ServiceList from './services/list'
 
@@ -66,7 +66,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 )
 
 function Onboarding() {
-  const { data, error } = useSWR<ServerState>('/api/state', { fetcher })
+  const { data, error } = useServerState()
 
   // Loading/error
   if (!data) {
@@ -80,7 +80,7 @@ function Onboarding() {
 }
 
 function WithoutDockerSwarm() {
-  const { mutate: mutateState } = useSWR<ServerState>('/api/state', { fetcher })
+  const { mutate: mutateState } = useServerState()
   const { data, error, mutate } = useSWR<OnboardingState>('/api/onboarding', {
     fetcher,
     refreshInterval: 3000,
@@ -206,9 +206,20 @@ function WithoutDockerSwarm() {
 }
 
 function OnboardingLayout({ children }: { children: ReactNode }) {
+  const { error } = useServerState()
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="flex flex-col p-6 gap-4 min-h-screen text-center">
+        {error &&
+          (error.message.includes('Failed to fetch') ? (
+            <p className="text-red-600 font-medium">
+              Cannot reach hivepanel server
+            </p>
+          ) : (
+            <p className="text-red-600 font-medium">
+              Server error! {error.message}
+            </p>
+          ))}
         <div className="flex flex-col gap-4 flex-1 items-center justify-center">
           {children}
         </div>

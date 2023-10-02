@@ -38,32 +38,34 @@ export async function onboardingMiddleware(req: Request, res: Response) {
   }
 
   if (req.method === 'POST' && req.url === '/init-swarm') {
+    let initialized = false
+    let migrated = false
+    let message = 'Unknown error'
     try {
-      const ok = await new Promise((resolve) =>
+      initialized = await new Promise((resolve) =>
         exec('docker swarm init', (err) => resolve(!err))
       )
-      for (let index = 0; index < 20; index++) {
+      message = 'Initialized swarm but failed to migrate'
+      for (let index = 0; index < 10; index++) {
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000))
           const newSwarm = await engine.get<Swarm>('/swarm')
-          const migrated = await swarm.migrate(newSwarm.data)
-          console.log('migrated swarm', migrated)
-          return res.json({
-            message: 'Swarm initialized successfully',
-          })
+          const migrated = await swarm.migrate(newSwarm?.data)
+          message = 'Initialized swarm successfully'
+          console.log('migrated swarm', migrated.swarm?.ID)
+          break
         } catch (error: any) {
           console.log('init', index, error.response?.data || error.message)
         }
       }
-      return res.json({
-        message: ok ? 'Initializing swarm...' : 'Failed to init swarm',
-      })
       // const ok = await engine.post('/swarm/init', {})
       // return res.json({ message: 'Creating swarm...', data: ok.data })
     } catch (error: any) {
       console.log('init', error.response?.data || error.message)
-      return res.json({ message: error.message })
+      if (error.response?.data?.message)
+        message = error.response?.data?.message || error.message
     }
+    return res.json({ message, initialized, migrated })
   }
 
   res.json({
