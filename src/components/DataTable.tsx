@@ -11,7 +11,11 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown } from 'lucide-react'
+import {
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import {
@@ -42,19 +46,23 @@ export function SortButton({
   children: React.ReactNode
   alignRight?: boolean
 }) {
+  const arrow =
+    column.getIsSorted() === 'asc' ? (
+      <ArrowUpNarrowWide className="h-4 w-4" />
+    ) : column.getIsSorted() === 'desc' ? (
+      <ArrowDownWideNarrow className="h-4 w-4" />
+    ) : (
+      <ArrowUpDown className="opacity-0 group-hover:opacity-100 h-4 w-4" />
+    )
   return (
     <Button
       variant="ghost"
-      className="-mx-4"
-      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      className="-mx-4 gap-2"
+      onClick={() => column.toggleSorting()}
     >
-      {alignRight && (
-        <ArrowUpDown className="opacity-0 group-hover:opacity-100 mr-2 h-4 w-4" />
-      )}
+      {alignRight && arrow}
       {children}
-      {!alignRight && (
-        <ArrowUpDown className="opacity-0 group-hover:opacity-100 ml-2 h-4 w-4" />
-      )}
+      {!alignRight && arrow}
     </Button>
   )
 }

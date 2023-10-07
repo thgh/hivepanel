@@ -198,6 +198,7 @@ export const columns: ColumnDef<Service>[] = [
   {
     id: 'memory',
     accessorKey: 'memory',
+    sortDescFirst: true,
     header: ({ column }) => (
       <div className="text-right">
         <SortButton column={column} alignRight>
