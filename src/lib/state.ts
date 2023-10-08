@@ -49,7 +49,7 @@ export const swarm = {
       },
       { validateStatus: () => true }
     )
-    if (network.status !== 409 && network.status !== 200) {
+    if (network.status !== 409 && network.status !== 201) {
       console.log('Failed to create network', network.status, network.data)
     }
     return { swarm }
@@ -81,8 +81,40 @@ export const swarm = {
           console.log('update swarm', error.response?.data || error.message)
         })
     } else {
-      if (!state.swarmLabelBuffer) state.swarmLabelBuffer = {} as any
+      if (!state.swarmLabelBuffer) state.swarmLabelBuffer = {}
       state.swarmLabelBuffer![key] = value
+    }
+  },
+  setAll(labels: Partial<Record<SwarmLabel, string>>) {
+    if (state.swarm?.Spec) {
+      state.swarm.Spec.Labels = {
+        ...state.swarm.Spec.Labels,
+        ...labels,
+      }
+      engine
+        .post(
+          '/swarm/update',
+          {
+            ...state.swarm.Spec,
+            Labels: {
+              ...state.swarm.Spec.Labels,
+              ...labels,
+            },
+          },
+          { params: { version: state.swarm.Version?.Index } }
+        )
+        .then((ok) => {
+          console.log('updated swarm', ok.status, labels)
+        })
+        .catch((error) => {
+          console.log('update swarm', error.response?.data || error.message)
+        })
+    } else {
+      if (!state.swarmLabelBuffer) state.swarmLabelBuffer = {}
+      state.swarmLabelBuffer = {
+        ...state.swarmLabelBuffer,
+        ...labels,
+      }
     }
   },
 }

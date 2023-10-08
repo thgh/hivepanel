@@ -54,3 +54,4 @@ Up for discussion:
 - Which npx commands should be available?
   - start: local or immediately in swarm?
   - upgrade: pull latest docker image and restart service
+- Show available docker tags to make it easy to upgrade a service

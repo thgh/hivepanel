@@ -2,10 +2,7 @@ import { Request, Response } from 'express'
 
 import { withDate } from '@/lib/date'
 import { engine } from '@/lib/docker'
-import { hiveConfig } from '@/lib/hiveConfig'
 import { isSwarmManager, state } from '@/lib/state'
-
-import { traefikRouterMiddleware } from './webserver/traefik'
 
 export async function USE(req: Request, res: Response) {
   if (!(await isSwarmManager())) {
@@ -15,9 +12,6 @@ export async function USE(req: Request, res: Response) {
   }
 
   try {
-    if (hiveConfig.webserver === 'traefik')
-      await traefikRouterMiddleware(req, res)
-
     const ok = await engine({
       method: req.method,
       url: req.path,

@@ -9,6 +9,8 @@ import type {
 } from 'dockerode'
 import type { Request, Response } from 'express'
 
+import { ServiceLabel } from './types'
+
 export const engine = axios.create({
   baseURL: 'http://localhost',
   httpAgent: new http.Agent({
@@ -30,7 +32,13 @@ export const handleService = (
 }
 
 function isServiceSpec(req: Request) {
-  return req.body.Name && req.body.Labels && req.body.TaskTemplate
+  return (
+    req.body.Name &&
+    req.body.Labels &&
+    (req.body.TaskTemplate ||
+      req.body.Labels['hive.deploy.image'] ||
+      req.body.Labels['hive.hostnames'])
+  )
 }
 
 // engine.interceptors.request.use((config) => {
@@ -180,9 +188,13 @@ export type Node = {
   }
 }
 
+export type CaddyLabel = 'caddy' | `caddy.${string}`
+
+export type TraefikLabel = `traefik.${string}`
+
 /** Same as Dockerode without some undefineds */
 export type ServiceSpec = Omit<DockerodeServiceSpec, 'Labels'> & {
-  Labels: Record<string, string | undefined>
+  Labels: Partial<Record<ServiceLabel | CaddyLabel | TraefikLabel, string>>
   Mode: ServiceMode
 }
 

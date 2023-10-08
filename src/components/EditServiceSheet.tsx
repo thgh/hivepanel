@@ -1,7 +1,7 @@
 'use client'
 
 import type { ContainerTaskSpec } from 'dockerode'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   Select,
@@ -44,6 +44,10 @@ export function EditServiceSheet({
     setEditor((spec) => ({ ...spec, Labels: { ...spec.Labels, [key]: value } }))
   }
 
+  useEffect(() => {
+    if (!invalid && json) setEditor(JSON.parse(json))
+  }, [!invalid && json])
+
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -73,8 +77,28 @@ export function EditServiceSheet({
               </Label>
               <Input
                 id="name"
-                value={editor.Labels!['hive.deploy.image']}
+                value={
+                  editor.Labels!['hive.deploy.image'] ||
+                  (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
+                    ?.Image ||
+                  ''
+                }
                 onChange={(evt) => label('hive.deploy.image', evt.target.value)}
+                placeholder={
+                  (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
+                    ?.Image || 'nginxdemos/hello'
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Hostnames
+              </Label>
+              <Input
+                id="name"
+                value={editor.Labels!['hive.hostnames'] || ''}
+                onChange={(evt) => label('hive.hostnames', evt.target.value)}
                 placeholder={
                   (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
                     ?.Image || 'nginxdemos/hello'

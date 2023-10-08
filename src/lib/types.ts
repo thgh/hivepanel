@@ -11,7 +11,7 @@ export type ServerState = {
   panelServiceAt?: number
   swarm?: Swarm
   swarmAt?: number
-  swarmLabelBuffer?: Record<SwarmLabel, string>
+  swarmLabelBuffer?: Partial<Record<SwarmLabel, string>>
   origin?: string
   fallbackPassword?: string
 
@@ -42,6 +42,8 @@ export type ServiceLabel =
   | 'hive.tint'
   | 'hive.web.http'
   | 'hive.web.https'
+  /** start-first or stop-first */
+  | 'hive.update'
   /** Require authentication */
   | `${'hive.user.'}${string}`
 
@@ -51,6 +53,10 @@ export type SwarmLabel =
   | 'hive.panel.port'
   | 'hive.panel.tag'
   | 'hive.panel.tint'
+  // Volume for the caddy web server
+  | 'hive.caddy.volume'
+  // Service that acts as web server
+  | 'hive.caddy.service'
   /** Require authentication */
   | `${'hive.panel.user.'}${string}`
   | `${'hive.session.'}${string}`

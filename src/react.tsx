@@ -103,7 +103,9 @@ function WithoutDockerSwarm() {
             onClick={async () => {
               const ok = await axios.post('/api/onboarding/init-swarm')
               mutate()
-              if (ok.data?.message) alert(ok.data.message)
+              mutateState()
+              if (ok.data?.message && !ok.data.message.includes('uccessful'))
+                alert(ok.data.message)
             }}
           >
             Initialize swarm cluster

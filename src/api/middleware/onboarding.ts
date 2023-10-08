@@ -50,9 +50,8 @@ export async function onboardingMiddleware(req: Request, res: Response) {
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000))
           const newSwarm = await engine.get<Swarm>('/swarm')
-          const migrated = await swarm.migrate(newSwarm?.data)
+          await swarm.migrate(newSwarm?.data)
           message = 'Initialized swarm successfully'
-          console.log('migrated swarm', migrated.swarm?.ID)
           break
         } catch (error: any) {
           console.log('init', index, error.response?.data || error.message)

@@ -5,10 +5,12 @@ import { PauseCircleIcon, PlayIcon, PlusIcon } from 'lucide-react'
 import useSWR from 'swr'
 
 import { Dated, humanDateMinute } from '@/lib/date'
-import type { Service, Task, TaskAndStats } from '@/lib/docker'
+import type { Service, ServiceSpec, Task, TaskAndStats } from '@/lib/docker'
 import { updateService } from '@/lib/docker-client'
 import { formatBytes } from '@/lib/formatBytes'
-import { fetcher } from '@/lib/swr'
+import { splitHostnames } from '@/lib/labels'
+import { fetcher, useServerState } from '@/lib/swr'
+import { ServiceLabel, SwarmLabel } from '@/lib/types'
 import { refreshServices } from '@/lib/useRefresh'
 
 import { DataTable, SortButton } from './DataTable'
@@ -21,13 +23,25 @@ export const columns: ColumnDef<Service>[] = [
     accessorKey: 'Spec.Name',
     header: ({ column }) => <SortButton column={column}>Name</SortButton>,
     cell: ({ row }) => {
+      const name = row.original.Spec.Name
+      const state = useServerState()
+      const labels = state.data?.swarm?.Spec.Labels as Partial<
+        Record<SwarmLabel, string>
+      >
+      if (labels && labels['hive.caddy.service'] === name)
+        return (
+          <div className="-my-2">
+            <div>Caddy</div>
+            <div className="text-muted-foreground text-xs">webserver</div>
+          </div>
+        )
       return (
         <EditServiceSheet
           value={row.original}
           key={row.original.ID + row.original.Version.Index}
         >
           <Button variant="ghost" size="sm" className="-my-[8px] -mx-3">
-            {row.original.Spec.Name}
+            {name}
           </Button>
         </EditServiceSheet>
       )
@@ -36,9 +50,23 @@ export const columns: ColumnDef<Service>[] = [
   {
     id: 'image',
     accessorKey: 'Spec.TaskTemplate.ContainerSpec.Image',
-    header: ({ column }) => <SortButton column={column}>Image</SortButton>,
+    header: ({ column }) => (
+      <SortButton column={column}>Hostname / Image</SortButton>
+    ),
     cell: ({ row }) => {
+      const spec: ServiceSpec = row.original.Spec
       const value: string = row.getValue('image')
+      const hostname = spec.Labels['hive.hostnames']
+      if (hostname) {
+        let first = splitHostnames(hostname)[0]
+        if (first === '*') first = window.location.hostname
+        return (
+          <div className="-my-2">
+            <a href={'http://' + first}>{first}</a>
+            <div className="text-muted-foreground text-xs">{value}</div>
+          </div>
+        )
+      }
       return <div className="text-muted-foreground">{value}</div>
     },
   },
@@ -47,10 +75,11 @@ export const columns: ColumnDef<Service>[] = [
     accessorFn: (row) => row.Spec?.Labels?.['hive.tint'],
     header: ({ column }) => <SortButton column={column}>Labels</SortButton>,
     cell: ({ row }) => {
-      const labels: Record<string, string> = row.getValue('Spec_Labels')
+      const labels = row.original.Spec.Labels
       return (
         <div className="flex flex-wrap gap-2">
           {Object.entries(labels || {})
+            .filter(([k, v]) => !k.startsWith('caddy.') && k !== 'caddy')
             .filter(([k, v]) => !k.startsWith('traefik.'))
             .filter(([k, v]) => !k.startsWith('hive.'))
             .map(([key, value]) => (
@@ -60,14 +89,14 @@ export const columns: ColumnDef<Service>[] = [
                 onClick={async () => {
                   if (!confirm(`Delete label "${key}": "${value}"?`)) return
                   await updateService(row.original, (spec) => {
-                    delete spec.Labels[key]
+                    delete spec.Labels[key as ServiceLabel]
                     return spec
                   })
                   refreshServices(1)
                 }}
               >
                 {key.length > 64 ? 'K' + key.length : key}{' '}
-                {value.length > 64 ? 'V' + value.length : value}
+                {value!.length > 64 ? 'V' + value!.length : value}
               </div>
             ))}
           <Button

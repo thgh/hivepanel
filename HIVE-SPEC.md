@@ -36,7 +36,7 @@ This label can be used to remember the desired number of replicas for a service 
 
 ### hive.hostnames
 
-This label assigns hostnames to a service. The router will use this information to configure virtual hosts. If empty, the service should not be considered a web service.
+This label assigns one or more hostnames to a service. The router will use this information to configure virtual hosts. If empty, the service should not be considered a web service. Hostnames are separates by a comma, newline or semicolon.
 
 ### hive.web.https
 

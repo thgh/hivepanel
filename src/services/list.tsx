@@ -22,7 +22,9 @@ export default function ServiceList() {
   const withMemory = useServicesWithMemory()
   const launch = async (name: string) => {
     const Name =
-      name === 'hivepanel' ? 'hivepanel' : prompt('Service name', name)
+      name === 'hivepanel'
+        ? 'hivepanel'
+        : prompt('Service name', name.split('/')[0])
     if (!Name) return
     const Image =
       name === 'ping'
@@ -62,7 +64,9 @@ export default function ServiceList() {
           : undefined,
       Labels: {
         'hive.deploy.image': Image,
-        'hive.hostnames': Name + '.*',
+        'hive.hostnames': window.location.origin.includes('localhost')
+          ? Name + '.localhost'
+          : undefined,
         'hive.tint': Math.floor(Math.random() * 360).toString(),
       },
       Mode: { Replicated: { Replicas: 1 } },
