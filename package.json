@@ -1,21 +1,22 @@
 {
   "name": "hivepanel",
   "description": "Get your swarm together with 📦 hivepanel, a Docker Swarm control panel",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
+  "private": false,
   "bin": {
-    "hive": "bundle/bin.mjs",
-    "hivepanel": "bundle/bin.mjs"
+    "hive": "bundle/bin.cjs",
+    "hivepanel": "bundle/bin.cjs"
   },
   "scripts": {
     "dev": "vite-node --watch src/server.dev.ts",
-    "build": "vite build && bunchee --target es2022 --external ./index && node bunchee-patch.js",
+    "build": "vite build && bunchee --runtime nodejs --target nodenext --external ./index && node bunchee-patch.js",
     "start": "node server.mjs",
     "cli": "node bin.mjs",
     "test": "vitest",
     "testleave": "FORCE_LEAVE_SWARM=1 vitest",
     "lint": "eslint --fix \"src/**\" && prettier -l --write .",
     "fix": "prettier --write .",
+    "prepare": "yarn build",
     "docker": "yarn dbuild && yarn drun",
     "dbuild": "yarn build && docker build . -t thgh/hivepanel",
     "dbuildx": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8",
@@ -42,7 +43,8 @@
     }
   },
   "files": [
-    "./bundle"
+    "./bundle",
+    "./dist"
   ],
   "dependencies": {},
   "devDependencies": {

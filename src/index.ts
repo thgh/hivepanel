@@ -1,5 +1,6 @@
 import { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
+import { resolve } from 'node:path'
 
 import express from 'express'
 
@@ -9,13 +10,12 @@ import { checkAuth, state } from './lib/state'
 export function createServer(port: number) {
   const app = express()
 
-  app.use(express.static('dist'))
-  app.use(express.static('public'))
+  app.use(express.static(resolve(__dirname, '../dist')))
   app.use(express.urlencoded({ extended: false }))
   app.use(express.json())
   app.use('/api', serverRouter)
   app.use((_, res) => {
-    res.sendFile(__dirname + '/dist/index.html')
+    res.sendFile(resolve(__dirname, '../dist/index.html'))
   })
 
   return new Promise<Server>((resolve) => {
