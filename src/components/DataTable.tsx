@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  Row,
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
@@ -34,7 +35,7 @@ import { Input } from './ui/input'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  onRowClick?: (event: React.MouseEvent<HTMLTableRowElement>) => void
+  onRowClick: (row: Row<TData>) => void
 }
 
 export function SortButton({
@@ -104,7 +105,7 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader className="group">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} onClick={onRowClick}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
@@ -126,12 +127,13 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => onRowClick(row)}
                   style={
                     (row.original as Service).Spec.Labels?.['hive.tint']
                       ? {
                           backgroundColor: `hsla(${
                             (row.original as Service).Spec.Labels['hive.tint']
-                          }, 100%, 50%, 7%)`,
+                          }, 100%, 50%, 10%)`,
                         }
                       : undefined
                   }

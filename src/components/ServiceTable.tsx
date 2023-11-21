@@ -1,7 +1,8 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { PauseCircleIcon, PlayIcon, PlusIcon } from 'lucide-react'
+import { PauseCircleIcon, PlayIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 
 import { Dated, humanDateMinute } from '@/lib/date'
@@ -10,11 +11,10 @@ import { updateService } from '@/lib/docker-client'
 import { formatBytes } from '@/lib/formatBytes'
 import { splitHostnames } from '@/lib/labels'
 import { fetcher, useServerState } from '@/lib/swr'
-import { ServiceLabel, SwarmLabel } from '@/lib/types'
+import { SwarmLabel } from '@/lib/types'
 import { refreshServices } from '@/lib/useRefresh'
 
 import { DataTable, SortButton } from './DataTable'
-import { EditServiceSheet } from './EditServiceSheet'
 import { Button } from './ui/button'
 
 export const columns: ColumnDef<Service>[] = [
@@ -36,14 +36,9 @@ export const columns: ColumnDef<Service>[] = [
           </div>
         )
       return (
-        <EditServiceSheet
-          value={row.original}
-          key={row.original.ID + row.original.Version.Index}
-        >
-          <Button variant="ghost" size="sm" className="-my-[8px] -mx-3">
-            {name}
-          </Button>
-        </EditServiceSheet>
+        <Button variant="ghost" size="sm" className="-my-[8px] -mx-3">
+          {name}
+        </Button>
       )
     },
   },
@@ -62,67 +57,76 @@ export const columns: ColumnDef<Service>[] = [
         if (first === '*') first = window.location.hostname
         return (
           <div className="-my-2">
-            <a href={'http://' + first}>{first}</a>
+            <a
+              href={'http://' + first}
+              className="hover:underline focus-visible:underline"
+            >
+              {first}
+            </a>
             <div className="text-muted-foreground text-xs">{value}</div>
           </div>
         )
       }
-      return <div className="text-muted-foreground">{value}</div>
-    },
-  },
-  {
-    id: 'labels',
-    accessorFn: (row) => row.Spec?.Labels?.['hive.tint'],
-    header: ({ column }) => <SortButton column={column}>Labels</SortButton>,
-    cell: ({ row }) => {
-      const labels = row.original.Spec.Labels
       return (
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(labels || {})
-            .filter(([k, v]) => !k.startsWith('caddy.') && k !== 'caddy')
-            .filter(([k, v]) => !k.startsWith('traefik.'))
-            .filter(([k, v]) => !k.startsWith('hive.'))
-            .map(([key, value]) => (
-              <div
-                key={key}
-                className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-1 -my-[2px] text-ellipsis max-w-xs overflow-hidden"
-                onClick={async () => {
-                  if (!confirm(`Delete label "${key}": "${value}"?`)) return
-                  await updateService(row.original, (spec) => {
-                    delete spec.Labels[key as ServiceLabel]
-                    return spec
-                  })
-                  refreshServices(1)
-                }}
-              >
-                {key.length > 64 ? 'K' + key.length : key}{' '}
-                {value!.length > 64 ? 'V' + value!.length : value}
-              </div>
-            ))}
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            className="-my-[10px] text-muted-foreground"
-            onClick={async () => {
-              const key = prompt('Key')!
-              const value = prompt('Value')!
-              await updateService(row.original, (spec) => ({
-                ...spec,
-                Labels: {
-                  ...spec.Labels,
-                  [key]: value.replaceAll('\\n', '\n'),
-                },
-              }))
-              refreshServices(1)
-            }}
-          >
-            <PlusIcon />
-          </Button>
+        <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
+          {value}
         </div>
       )
     },
   },
+  // {
+  //   id: 'labels',
+  //   accessorFn: (row) => row.Spec?.Labels?.['hive.tint'],
+  //   header: ({ column }) => <SortButton column={column}>Labels</SortButton>,
+  //   cell: ({ row }) => {
+  //     const labels = row.original.Spec.Labels
+  //     return (
+  //       <div className="flex flex-wrap gap-2">
+  //         {Object.entries(labels || {})
+  //           .filter(([k, v]) => !k.startsWith('caddy.') && k !== 'caddy')
+  //           .filter(([k, v]) => !k.startsWith('traefik.'))
+  //           .filter(([k, v]) => !k.startsWith('hive.'))
+  //           .map(([key, value]) => (
+  //             <div
+  //               key={key}
+  //               className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-1 -my-[2px] text-ellipsis max-w-xs overflow-hidden"
+  //               onClick={async () => {
+  //                 if (!confirm(`Delete label "${key}": "${value}"?`)) return
+  //                 await updateService(row.original, (spec) => {
+  //                   delete spec.Labels[key as ServiceLabel]
+  //                   return spec
+  //                 })
+  //                 refreshServices(1)
+  //               }}
+  //             >
+  //               {key.length > 64 ? 'K' + key.length : key}{' '}
+  //               {value!.length > 64 ? 'V' + value!.length : value}
+  //             </div>
+  //           ))}
+  //         <Button
+  //           type="button"
+  //           size="icon"
+  //           variant="outline"
+  //           className="-my-[10px] text-muted-foreground"
+  //           onClick={async () => {
+  //             const key = prompt('Key')!
+  //             const value = prompt('Value')!
+  //             await updateService(row.original, (spec) => ({
+  //               ...spec,
+  //               Labels: {
+  //                 ...spec.Labels,
+  //                 [key]: value.replaceAll('\\n', '\n'),
+  //               },
+  //             }))
+  //             refreshServices(1)
+  //           }}
+  //         >
+  //           <PlusIcon />
+  //         </Button>
+  //       </div>
+  //     )
+  //   },
+  // },
   // {
   //   accessorKey: 'CreatedAt',
   //   header: ({ column }) => (
@@ -185,7 +189,7 @@ export const columns: ColumnDef<Service>[] = [
             .map((s) => (s.count > 1 ? s.count + ' ' : '') + s.Status.State)
             .join(', ')
           return (
-            <div className="-my-2 text-muted-foreground">
+            <div className="-my-2 text-muted-foreground whitespace-nowrap">
               <div className="flex items-center">
                 {running && 'running'}
                 <div className=" text-red-700 flex-1 text-right">
@@ -207,7 +211,7 @@ export const columns: ColumnDef<Service>[] = [
         }
       }
       return (
-        <div className="text-right text-muted-foreground">
+        <div className="text-right text-muted-foreground whitespace-nowrap">
           {humanDateMinute(row.getValue('UpdatedAt'))}
         </div>
       )
@@ -364,12 +368,13 @@ export const columns: ColumnDef<Service>[] = [
 ]
 
 export function ServiceTable({ data }: { data: Service[] }) {
+  const navigate = useNavigate()
   return (
     <DataTable
       columns={columns}
       data={data}
-      onRowClick={(evt) => {
-        console.log('click row')
+      onRowClick={(row) => {
+        navigate('?service=' + row.original.ID)
       }}
     />
   )

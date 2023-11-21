@@ -75,6 +75,7 @@ export function Sidebar({ className }: SidebarProps) {
           <div className="space-y-1">
             {nodes.data?.data?.map((node) => (
               <Button
+                key={node.ID}
                 variant="ghost"
                 className="w-full justify-start"
                 onClick={() => alert('todo')}

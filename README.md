@@ -29,6 +29,7 @@ The prototype contains these features:
 - [x] Edit service spec
 - [x] Detect failing services
 - [ ] Wildcard certificate generation
+- [ ] Environment variable editing
 
 Up for discussion:
 
@@ -55,3 +56,16 @@ Up for discussion:
   - start: local or immediately in swarm?
   - upgrade: pull latest docker image and restart service
 - Show available docker tags to make it easy to upgrade a service
+
+Alternatives:
+
+- Caprover
+- Coolify
+- Easypanel
+- Portainer
+- Rancher
+- [Shipyard](https://shipyard-project.com/)
+- Swarmpit
+- Swirl
+- Traefik Pilot
+- UCP

@@ -65,8 +65,14 @@
   }
 }
 
-html {
-  background: black;
+html,
+body {
+  background: hsl(var(--background));
+}
+#root {
+  display: flex;
+  min-height: 100vh;
+  min-width: 700px;
 }
 
 @layer base {

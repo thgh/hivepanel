@@ -34,9 +34,20 @@ async function main() {
     })
     if (!response.initSwarm) return
 
-    const init = await new Promise((resolve) =>
-      exec('docker swarm init', (err) => resolve(!err))
+    const init = await new Promise<{
+      error: Error | null
+      stdout: string
+      stderr: string
+    }>((resolve) =>
+      exec('docker swarm init', (error, stdout, stderr) =>
+        resolve({ error, stdout, stderr })
+      )
     )
+
+    if (init.error) {
+      console.error('Swarm initialization failed:', init.error)
+      return
+    }
     console.log('Swarm initialized:', init)
     return main()
   }

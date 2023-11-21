@@ -1,8 +1,9 @@
 {
   "name": "hivepanel",
   "description": "Get your swarm together with 📦 hivepanel, a Docker Swarm control panel",
-  "version": "0.2.0",
+  "version": "0.2.6",
   "private": false,
+  "license": "UNLICENSED",
   "bin": {
     "hive": "bundle/bin.cjs",
     "hivepanel": "bundle/bin.cjs"
