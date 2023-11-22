@@ -60,3 +60,7 @@ This label enables authentication for a service. The value must be a hashed pass
 ### hive.auth
 
 If the value is `service-label`, the responsibility for authentication is moved from the webserver to the service. It means that service will read the `hive.user.*` labels for authenticatino purposes. This label allows the Hivepanel container to present a nice sign in screen instead of Basic Auth flow.
+
+<!-- curl -sSL https://get.docker.com | sh
+
+docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock:ro -p 23077:80 thgh/hivepanel -->

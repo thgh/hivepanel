@@ -221,7 +221,12 @@ export default function ServiceList() {
 
       <EditServiceSheet
         open={!!sheetDetail}
-        onClose={() => setSearch({})}
+        onClose={() =>
+          setSearch((prev) => {
+            prev.delete('service')
+            return prev
+          })
+        }
         value={sheetDetail}
       />
     </>

@@ -18,6 +18,11 @@ export async function USE(req: Request, res: Response) {
       data: req.body,
       params: req.query,
     })
+
+    if (req.path.endsWith('/logs')) {
+      console.log('logs')
+      return res.status(ok.status).send(ok.data)
+    }
     // console.log('ok', ok.data)
     if (typeof ok.data === 'object')
       return res.status(ok.status).json(withDate(ok.data))

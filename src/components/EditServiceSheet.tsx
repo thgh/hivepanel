@@ -2,6 +2,7 @@
 
 import type { ContainerTaskSpec } from 'dockerode'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import {
   Select,
@@ -10,10 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { engine, updateService } from '@/lib/docker-client'
 import { refreshServices } from '@/lib/useRefresh'
 
-import type { Service } from '../lib/docker'
+import type { Service, ServiceSpec } from '../lib/docker'
+import { ErrorBoundary } from './ErrorBoundary'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -37,23 +40,49 @@ export function EditServiceSheet({
   onClose: () => void
   value?: Service
 }) {
+  const [search, setSearch] = useSearchParams()
   return (
     <Sheet
       open={open}
       onOpenChange={(open) => {
-        if (!open) onClose()
+        if (!open)
+          setTimeout(() => {
+            onClose()
+          }, 200)
       }}
     >
       <SheetContent
         side="right"
-        className="w-[750px] max-w-[calc(100vw_-_50px)] h-full flex flex-col bg-white"
+        className="w-[750px] max-w-[calc(100vw_-_50px)] h-full overflow-auto flex flex-col bg-white"
       >
-        {value && (
-          <EditServiceForm
-            key={value ? value.ID + value?.Version?.Index : ''}
-            value={value}
-          />
-        )}
+        <Tabs
+          defaultValue="edit"
+          value={search.get('tab') || 'edit'}
+          onValueChange={(tab) =>
+            setSearch((prev) => {
+              prev.set('tab', tab)
+              return prev
+            })
+          }
+        >
+          <TabsList className="top-0 sticky">
+            <TabsTrigger value="edit">Edit</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+          </TabsList>
+          <TabsContent value="edit">
+            {value && (
+              <EditServiceForm
+                key={value ? value.ID + value?.Version?.Index : ''}
+                value={value}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="logs">
+            <ErrorBoundary>
+              {value && <ServiceLogs value={value} />}
+            </ErrorBoundary>
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   )
@@ -66,6 +95,10 @@ function EditServiceForm({ value }: { value: Service }) {
   const label = (key: string, value: string) => {
     if (json) setJSON('')
     setEditor((spec) => ({ ...spec, Labels: { ...spec.Labels, [key]: value } }))
+  }
+  const mutate = (updater: (spec: ServiceSpec) => ServiceSpec) => {
+    if (json) setJSON('')
+    setEditor((obj) => updater(JSON.parse(JSON.stringify(obj))))
   }
 
   useEffect(() => {
@@ -88,11 +121,11 @@ function EditServiceForm({ value }: { value: Service }) {
       </SheetHeader>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name" className="text-right">
+          <Label htmlFor="image" className="text-right">
             Docker image
           </Label>
           <Input
-            id="name"
+            id="image"
             value={
               editor.Labels!['hive.deploy.image'] ||
               (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
@@ -108,17 +141,25 @@ function EditServiceForm({ value }: { value: Service }) {
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name" className="text-right">
+          <Label htmlFor="hostnames" className="text-right">
             Hostnames
           </Label>
-          <Input
-            id="name"
-            value={editor.Labels!['hive.hostnames'] || ''}
-            onChange={(evt) => label('hive.hostnames', evt.target.value)}
-            placeholder={
-              (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
-                ?.Image || 'nginxdemos/hello'
+          <Textarea
+            id="hostnames"
+            value={
+              editor.Labels!['hive.hostnames']?.replaceAll(/[\s,;]+/g, '\n') ||
+              ''
             }
+            onChange={(evt) =>
+              label(
+                'hive.hostnames',
+                evt.target.value?.replaceAll(/[\s;]+/g, '\n')
+              )
+            }
+            rows={
+              editor.Labels!['hive.hostnames']?.split(/[\s,;]+/g).length || 1
+            }
+            placeholder="example.test"
             className="col-span-3"
           />
         </div>
@@ -153,18 +194,44 @@ function EditServiceForm({ value }: { value: Service }) {
             className="col-span-3"
           />
         </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="env" className="text-right">
+            Environment
+          </Label>
+          <Textarea
+            id="env"
+            rows={
+              (editor.TaskTemplate as ContainerTaskSpec).ContainerSpec?.Env
+                ?.length || 1
+            }
+            value={
+              (
+                editor.TaskTemplate as ContainerTaskSpec
+              ).ContainerSpec?.Env?.join('\n') || ''
+            }
+            placeholder="PORT=80"
+            onChange={(evt) =>
+              mutate((spec) => {
+                ;(spec.TaskTemplate as ContainerTaskSpec).ContainerSpec!.Env =
+                  evt.target.value.split('\n')
+                return spec
+              })
+            }
+            className="col-span-3  min-h-[38px]"
+          />
+        </div>
       </div>
       <div className="flex flex-col w-full gap-1.5 flex-1">
         <Label htmlFor="message">Spec</Label>
         <Textarea
-          className="flex-1 font-mono"
+          className="flex-1 min-h-[800px] font-mono"
           placeholder="{ ...Spec }"
           id="message"
           value={json || JSON.stringify(editor, null, 2)}
           onChange={(e) => setJSON(e.target.value)}
         />
       </div>
-      <SheetFooter>
+      <SheetFooter className="bottom-0 sticky">
         <Button
           type="button"
           onClick={async () => {
@@ -183,6 +250,26 @@ function EditServiceForm({ value }: { value: Service }) {
       </SheetFooter>
     </form>
   )
+}
+
+function ServiceLogs({ value }: { value: Service }) {
+  const [logs, setLogs] = useState('')
+  useEffect(() => {
+    // axios to browser stream
+    engine
+      .get<string>('/services/' + value.ID + '/logs', {
+        params: { stdout: true },
+      })
+      .then((res) => {
+        // handle first character on each line of docker logs
+        // const logs: string = res as any
+        // const lines = logs.split('\n')
+        // let prev = ''
+
+        setLogs((prev) => prev + res)
+      })
+  }, [value.ID])
+  return <pre className="flex-1 min-h-[800px] font-mono text-sm">{logs}</pre>
 }
 
 function isValidJSON(str: string) {
