@@ -14,12 +14,12 @@ export default function Layout({
 }) {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="w-64 border-r">
-        <Sidebar />
-      </div>
-      <div className="w-full h-screen">
+      <div className="sm:order-1 sm:w-[calc(100vw-16rem)] sm:overflow-x-hidden">
         {children}
         <Outlet />
+      </div>
+      <div className="sm:w-64 sm:border-r basis-0 flex-shrink-0 flex-grow">
+        <Sidebar />
       </div>
     </ThemeProvider>
   )

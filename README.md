@@ -29,7 +29,7 @@ The prototype contains these features:
 - [x] Edit service spec
 - [x] Detect failing services
 - [ ] Wildcard certificate generation
-- [ ] Environment variable editing
+- [x] Environment variable editing
 
 Up for discussion:
 

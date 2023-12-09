@@ -36,7 +36,7 @@ export const columns: ColumnDef<Service>[] = [
           </div>
         )
       return (
-        <Button variant="ghost" size="sm" className="-my-[8px] -mx-3">
+        <Button variant="ghost" size="sm" className="-my-[8px] -mx-3 text-left">
           {name}
         </Button>
       )
@@ -56,20 +56,46 @@ export const columns: ColumnDef<Service>[] = [
         let first = splitHostnames(hostname)[0]
         if (first === '*') first = window.location.hostname
         return (
-          <div className="-my-2">
-            <a
-              href={'http://' + first}
-              className="hover:underline focus-visible:underline"
-            >
+          <a
+            className="-my-2 group"
+            href={'http://' + first}
+            target="_blank"
+            onClick={(evt) => {
+              evt.stopPropagation()
+            }}
+          >
+            <div className="group-hover:underline group-focus-visible:underline">
               {first}
-            </a>
-            <div className="text-muted-foreground text-xs">{value}</div>
-          </div>
+            </div>
+            <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
+              {value}
+            </div>
+          </a>
         )
       }
       return (
-        <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
-          {value}
+        <div
+          className="-my-2 group cursor-pointer"
+          onClick={async (evt) => {
+            evt.stopPropagation()
+            const hostnames = prompt('Add hostname')
+            if (!hostnames) return
+            await updateService(row.original, (spec) => ({
+              ...spec,
+              Labels: {
+                ...spec.Labels,
+                'hive.hostnames': hostnames,
+              },
+            }))
+            refreshServices()
+          }}
+        >
+          <div className="group-hover:underline font-medium invisible group-hover:visible text-muted-foreground">
+            Add hostname...
+          </div>
+          <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
+            {value}
+          </div>
         </div>
       )
     },
@@ -253,7 +279,8 @@ export const columns: ColumnDef<Service>[] = [
             size="sm"
             variant="ghost"
             className="-my-[8px] -mx-3 font-normal"
-            onClick={async () => {
+            onClick={async (evt) => {
+              evt.stopPropagation()
               const limit = prompt(
                 'Set memory limit in MB',
                 '' + (max || 0) / 1024 / 1024
@@ -309,7 +336,8 @@ export const columns: ColumnDef<Service>[] = [
               className="-my-[8px]"
               variant="ghost"
               size="sm"
-              onClick={async () => {
+              onClick={async (evt) => {
+                evt.stopPropagation()
                 await updateService(row.original, (spec) => {
                   const r = parseInt(
                     prompt(
@@ -338,7 +366,8 @@ export const columns: ColumnDef<Service>[] = [
             className="-my-[10px]"
             variant="outline"
             size="icon"
-            onClick={async () => {
+            onClick={async (evt) => {
+              evt.stopPropagation()
               await updateService(row.original, (spec) => ({
                 ...spec,
                 Mode: {

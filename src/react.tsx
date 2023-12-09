@@ -211,7 +211,7 @@ function OnboardingLayout({ children }: { children: ReactNode }) {
   const { error } = useServerState()
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="flex flex-col p-6 gap-4 min-h-screen text-center">
+      <div className="flex flex-col p-6 gap-4 min-h-screen text-center m-auto">
         {error &&
           (error.message.includes('Failed to fetch') ? (
             <p className="text-red-600 font-medium">

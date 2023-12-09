@@ -71,8 +71,13 @@ body {
 }
 #root {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  min-width: 700px;
+}
+@media (min-width: 640px) {
+  #root {
+    flex-direction: row;
+  }
 }
 
 @layer base {

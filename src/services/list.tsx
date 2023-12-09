@@ -95,7 +95,7 @@ export default function ServiceList() {
 
   return (
     <>
-      <div className="pt-6 px-6 opacity-60 left-0 -mb-2 flex gap-12">
+      <div className="pt-6 px-6 text-sm opacity-60 left-0 -mb-2 flex flex-wrap gap-x-12 gap-y-2">
         <span>RAM free {formatBytesRatio(data?.freemem, data?.totalmem)}</span>
         <span>
           Load{' '}
@@ -110,8 +110,10 @@ export default function ServiceList() {
             : ''}
         </span>
       </div>
-      <h1 className="pt-6 px-6 text-xl left-0 -mb-2">Launch new service</h1>
-      <div className="flex flex-col max-w-full overflow-auto">
+      <h1 className="pt-6 px-6 text-xl left-0 -mb-2 z-10 relative">
+        Launch new service
+      </h1>
+      <div className="overflow-auto bg-background flex">
         <div className="p-6 gap-6 flex">
           <button
             className="group text-left"

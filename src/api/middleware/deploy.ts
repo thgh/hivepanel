@@ -14,4 +14,11 @@ export default handleService((spec) => {
       },
     }
   }
+
+  // Remove invalid env variables
+  if ((spec.TaskTemplate as ContainerTaskSpec).ContainerSpec!.Env) {
+    ;(spec.TaskTemplate as ContainerTaskSpec).ContainerSpec!.Env = (
+      spec.TaskTemplate as ContainerTaskSpec
+    ).ContainerSpec!.Env?.filter((env) => !env)
+  }
 })
