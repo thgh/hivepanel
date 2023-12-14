@@ -78,6 +78,9 @@ export const swarm = {
           console.log('updated swarm', ok.status, key)
         })
         .catch((error) => {
+          if (error.response?.data?.message === 'update out of sequence') {
+            console.log('out of sequence, data lost')
+          }
           console.log('update swarm', error.response?.data || error.message)
         })
     } else {

@@ -100,21 +100,17 @@ export function Sidebar({ className }: SidebarProps) {
               Authentication
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => alert('import/export')}
-          >
-            <DatabaseBackupIcon className="mr-2 h-4 w-4" />
-            Backup
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <Link to="/settings/backup">
+              <DatabaseBackupIcon className="mr-2 h-4 w-4" />
+              Backup
+            </Link>
           </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => alert('manage traefik/nginx/caddy')}
-          >
-            <SplitIcon className="mr-2 h-4 w-4" />
-            Web server
+          <Button variant="ghost" className="w-full justify-start" asChild>
+            <Link to="/settings/webserver">
+              <SplitIcon className="mr-2 h-4 w-4" />
+              Webserver
+            </Link>
           </Button>
         </div>
       </div>

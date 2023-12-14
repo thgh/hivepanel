@@ -25,6 +25,9 @@ import { ThemeProvider } from './lib/theme'
 import { OnboardingState } from './lib/types'
 import ServiceDetail from './services/detail'
 import ServiceList from './services/list'
+import SettingsAuthentication from './settings/authentication'
+import SettingsBackup from './settings/backup'
+import SettingsWebserver from './settings/webserver'
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +59,24 @@ export const router = createBrowserRouter([
       </Layout>
     ),
     errorElement: <div>Not found!</div>,
+  },
+  {
+    path: '/settings',
+    element: <Layout />,
+    children: [
+      {
+        path: 'authentication',
+        element: <SettingsAuthentication />,
+      },
+      {
+        path: 'backup',
+        element: <SettingsBackup />,
+      },
+      {
+        path: 'webserver',
+        element: <SettingsWebserver />,
+      },
+    ],
   },
 ])
 
