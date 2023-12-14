@@ -18,19 +18,21 @@ export async function authMiddleware(
 
   const sessionId = req.cookies[SESSION]
   if (sessionId) {
-    const session = swarm.get(`hive.session.${sessionId}`)
-    if (session) {
+    const sessionString = swarm.get(`hive.session.${sessionId}`)
+    if (sessionString) {
+      const session: { email: string } = JSON.parse(sessionString)
       if (req.method === 'PATCH' && req.url === '/auth/user') {
         let { username, password } = req.body
         if (!username && !password) return res.json({ message: 'No changes' })
-        console.log('update user', username, password, session)
-        if (!username) username = session
-        if (!password) password = swarm.users.get(session)
+        console.log('update user', username, password, session.email)
+        if (!username) username = session.email
+        if (!password) password = swarm.users.get(session.email)
         // Memory
         swarm.users.set(username, password)
         // Persist
         swarm.set(`hive.panel.user.${username}`, password)
-        if (username !== session) swarm.set(`hive.panel.user.${session}`, '')
+        if (username !== session.email)
+          swarm.set(`hive.panel.user.${session.email}`, '')
         return res.json({ message: 'User updated', username })
       }
 
