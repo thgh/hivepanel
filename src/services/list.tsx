@@ -14,6 +14,12 @@ import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
 import { formatBytesRatio } from '@/lib/formatBytes'
+import {
+  panels,
+  panelSync,
+  registerPanel,
+  useIsPanelRegistered,
+} from '@/lib/panels'
 import { useServerState, useServices, useServicesWithMemory } from '@/lib/swr'
 
 export default function ServiceList() {
@@ -78,6 +84,7 @@ export default function ServiceList() {
     swr.mutate()
   }
   const { data, error } = useServerState()
+  const registered = useIsPanelRegistered()
 
   // const tasks = useSWR<Dated<Task[]>>('/api/engine/tasks', fetcher, {
   //   refreshInterval: 3000,
@@ -184,23 +191,19 @@ export default function ServiceList() {
           <EnableTraefik />
           <EnableHive />
           <Button
-            variant={'outline'}
+            variant={registered ? 'outline' : 'default'}
             onClick={() => {
-              const iframe = document.createElement('iframe')
-              // iframe.sandbox = 'allow-scripts allow-same-origin allow-modals'
-              iframe.onload = () => {
-                const content = iframe.contentWindow
-                window?.addEventListener('message', (event) => {
-                  if (event.data && event.data.hive === 'close') iframe.remove()
-                })
-                content?.postMessage({ hive: 'prefer' }, '*')
-              }
-              iframe.src = 'https://hivepanel-recent.vercel.app'
-              document.body.appendChild(iframe)
+              registerPanel()
             }}
           >
             Register recent
           </Button>
+          {panelSync.hook()}
+          {panels
+            .hook()
+            ?.data.map((panel) => (
+              <div key={panel.origin}>Panel {panel.origin}</div>
+            ))}
         </div>
         {/* <div className="flex gap-4 flex-col">
           {swr.data?.data.map((service) => (

@@ -17,6 +17,7 @@
     "testleave": "FORCE_LEAVE_SWARM=1 vitest",
     "lint": "eslint --fix \"src/**\" && prettier -l --write .",
     "fix": "prettier --write .",
+    "recent": "(cd recently-used && vc --prod)",
     "prepare": "yarn build",
     "docker": "yarn dbuild && yarn drun",
     "dbuild": "yarn build && docker build . -t thgh/hivepanel",
