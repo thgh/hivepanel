@@ -41,3 +41,19 @@ export function useServicesWithMemory() {
 export function useServerState() {
   return useSWR<ServerState>('/api/state', fetcher)
 }
+
+export function useSwarmLinks() {
+  const nodes = useNodes()
+  const server = useServerState()
+  const labels = server.data?.swarm?.Spec.Labels
+  if (!labels) return
+  const links = Object.entries(labels)
+    .filter(([label, value]) => label.startsWith('hive.link.'))
+    .map(([label, value]) => JSON.parse(value))
+    .filter((link) => link.type === 'hivepanel')
+
+  return {
+    hostname: nodes.data?.data[0].Description.Hostname,
+    links,
+  }
+}

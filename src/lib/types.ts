@@ -53,6 +53,8 @@ export type SwarmLabel =
   | 'hive.panel.port'
   | 'hive.panel.tag'
   | 'hive.panel.tint'
+  // Metadata about another swarm
+  | `${'hive.peer.'}${string}`
   // Volume for the caddy web server
   | 'hive.caddy.volume'
   // Service that acts as web server

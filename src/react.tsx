@@ -27,6 +27,7 @@ import ServiceDetail from './services/detail'
 import ServiceList from './services/list'
 import SettingsAuthentication from './settings/authentication'
 import SettingsBackup from './settings/backup'
+import SettingsPeers from './settings/peers'
 import SettingsWebserver from './settings/webserver'
 
 export const router = createBrowserRouter([
@@ -71,6 +72,10 @@ export const router = createBrowserRouter([
       {
         path: 'backup',
         element: <SettingsBackup />,
+      },
+      {
+        path: 'peers',
+        element: <SettingsPeers />,
       },
       {
         path: 'webserver',
