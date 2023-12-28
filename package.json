@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "vite-node --watch src/server.dev.ts",
-    "build": "vite build && bunchee --runtime nodejs --target nodenext --external ./index && node bunchee-patch.js",
+    "build": "vite build && pkgroll --dist bundle",
     "start": "node server.mjs",
     "cli": "node bin.mjs",
     "test": "vitest",
@@ -25,6 +25,9 @@
     "dbuildxp": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8 --push",
     "drun": "docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock:ro -e PORT=23077 -p 23077:23077 thgh/hivepanel",
     "dpush": "docker push thgh/hivepanel"
+  },
+  "imports": {
+    "@": "src"
   },
   "exports": {
     ".": {
@@ -78,7 +81,6 @@
     "@vitest/ui": "^0.34.5",
     "autoprefixer": "^10.4.16",
     "axios": "^1.5.0",
-    "bunchee": "^3.8.0",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "clsx": "^2.0.0",
@@ -92,6 +94,7 @@
     "express": "^4.18.2",
     "lucide-react": "^0.279.0",
     "native-dns": "^0.7.0",
+    "pkgroll": "^2.0.1",
     "postcss": "^8.4.30",
     "prettier": "^3.0.3",
     "prompts": "^2.4.2",

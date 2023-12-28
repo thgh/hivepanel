@@ -53,7 +53,7 @@ export function useSwarmLinks() {
     .filter((link) => link.type === 'hivepanel')
 
   return {
-    hostname: nodes.data?.data[0].Description.Hostname,
+    hostname: nodes.data?.data?.[0].Description.Hostname,
     links,
   }
 }

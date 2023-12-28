@@ -30,6 +30,7 @@ The prototype contains these features:
 - [x] Detect failing services
 - [ ] Wildcard certificate generation
 - [x] Environment variable editing
+- [ ] Hover over system info to see live stats
 
 Up for discussion:
 
