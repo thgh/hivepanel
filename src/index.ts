@@ -9,13 +9,14 @@ import { checkAuth, state } from './lib/state'
 
 export function createServer(port: number) {
   const app = express()
+  const cwd = process.cwd()
 
-  app.use(express.static(resolve(__dirname, '../dist')))
+  app.use(express.static(resolve(cwd, 'dist')))
   app.use(express.urlencoded({ extended: false }))
   app.use(express.json())
   app.use('/api', serverRouter)
   app.use((_, res) => {
-    res.sendFile(resolve(__dirname, '../dist/index.html'))
+    res.sendFile(resolve(cwd, 'dist/index.html'))
   })
 
   return new Promise<Server>((resolve) => {
