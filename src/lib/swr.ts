@@ -3,7 +3,7 @@ import useSWRImmutable from 'swr/immutable'
 
 import { Dated } from './date'
 import type { Node, Service, TaskAndStats } from './docker'
-import { ServerState } from './types'
+import { ServerState, SwarmLink } from './types'
 
 export const fetcher = (url: string) =>
   fetch(url)
@@ -43,17 +43,15 @@ export function useServerState() {
 }
 
 export function useSwarmLinks() {
-  const nodes = useNodes()
   const server = useServerState()
   const labels = server.data?.swarm?.Spec.Labels
   if (!labels) return
-  const links = Object.entries(labels)
-    .filter(([label, value]) => label.startsWith('hive.link.'))
-    .map(([label, value]) => JSON.parse(value))
-    .filter((link) => link.type === 'hivepanel')
+  return { links: parseSwarmLinks(labels) }
+}
 
-  return {
-    hostname: nodes.data?.data?.[0].Description.Hostname,
-    links,
-  }
+export function parseSwarmLinks(labels: Record<string, string>) {
+  return Object.entries(labels)
+    .filter(([label, value]) => value && label.startsWith('hive.link.'))
+    .map(([label, value]) => ({ ...(JSON.parse(value) as SwarmLink), label }))
+    .filter((link) => link.type === 'hivepanel')
 }

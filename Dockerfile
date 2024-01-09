@@ -5,6 +5,6 @@ FROM base AS runner
 RUN apk add --no-cache docker
 WORKDIR /app
 COPY dist ./dist
-COPY bundle/server.mjs bundle/index.mjs .
+COPY bundle .
 EXPOSE 80
 CMD ["node", "server.mjs"]

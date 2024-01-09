@@ -86,6 +86,7 @@ export default handleService(async (spec) => {
       .map((h) =>
         h.endsWith('localhost') || h.endsWith('traefik.me') ? 'http://' + h : h
       )
+      .filter(Boolean)
       .join(', '),
     'caddy.reverse_proxy': '{{upstreams}}',
     // 'caddy.tls': 'internal',

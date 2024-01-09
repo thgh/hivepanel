@@ -2,6 +2,12 @@ import type { Swarm } from 'dockerode'
 
 import type { Service } from './docker'
 
+export type SwarmLink = {
+  type: 'hivepanel'
+  display: string
+  url: string
+}
+
 export type ServerState = {
   isDockerRunning?: boolean
   isDockerRunningAt?: number
@@ -53,8 +59,9 @@ export type SwarmLabel =
   | 'hive.panel.port'
   | 'hive.panel.tag'
   | 'hive.panel.tint'
+  | 'hive.panel.name'
   // Metadata about another swarm
-  | `${'hive.peer.'}${string}`
+  | `${'hive.link.'}${string}`
   // Volume for the caddy web server
   | 'hive.caddy.volume'
   // Service that acts as web server

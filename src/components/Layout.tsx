@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'
 
+import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/lib/theme'
 
 import { Sidebar } from './Sidebar'
@@ -21,6 +22,7 @@ export default function Layout({
       <div className="sm:w-64 sm:border-r basis-0 flex-shrink-0 flex-grow">
         <Sidebar />
       </div>
+      <Toaster />
     </ThemeProvider>
   )
 }

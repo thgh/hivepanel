@@ -3,6 +3,7 @@
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import axios from 'axios'
 import {
+  ChevronDownIcon,
   DatabaseBackupIcon,
   KeyRoundIcon,
   LogOutIcon,
@@ -16,7 +17,7 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { useNodes, useServices, useSwarmLinks } from '@/lib/swr'
+import { useNodes, useServerState, useServices, useSwarmLinks } from '@/lib/swr'
 
 import { ThemeToggle } from './ThemeToggle'
 import {
@@ -31,8 +32,9 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function Sidebar({ className }: SidebarProps) {
   const path = useLocation().pathname
-  const is = (match: string) => (path === '/' + match ? 'default' : 'ghost')
+  const is = (match: string) => (path === '/' + match ? 'secondary' : 'ghost')
 
+  const server = useServerState()
   const services = useServices()
   const nodes = useNodes()
   const swarmLinks = useSwarmLinks()
@@ -49,34 +51,39 @@ export function Sidebar({ className }: SidebarProps) {
           </h2>
         </Link>
 
-        {swarmLinks?.links.length ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="w-full flex">
-                {/* <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" /> */}
-                {/* <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" /> */}
-                toggl
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {swarmLinks.links.map((link) => (
-                <DropdownMenuItem asChild>
-                  <a href={link.url}>{link.display}</a>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-
-        <Button
-          variant="outline"
-          className="w-full justify-start mb-6"
-          onClick={() => alert('todo')}
-        >
-          <NetworkIcon className="mr-2 h-4 w-4" />
-          {swarmLinks?.hostname}&nbsp;
-          <NetworkIcon className="mr-2 h-4 w-4" />
-        </Button>
+        <div className="mx-4">
+          {swarmLinks?.links.length ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="w-full flex justify-between pl-3 pr-3"
+                >
+                  {/* <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" /> */}
+                  {/* <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" /> */}
+                  {server.data?.swarm?.Spec.Labels?.['hive.panel.name'] ||
+                    window.location.host}
+                  <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {swarmLinks.links.map((link, key) => (
+                  <DropdownMenuItem asChild key={key}>
+                    <a
+                      href={link.url}
+                      className="flex-col justify-start"
+                      target="_blank"
+                    >
+                      <div className="font-medium"> {link.display}</div>
+                      <div className="text-sm text-slate-500"> {link.url}</div>
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </div>
 
         <div className="space-y-1">
           <Button
@@ -132,25 +139,41 @@ export function Sidebar({ className }: SidebarProps) {
           Settings
         </h2>
         <div className="space-y-1">
-          <Button variant="ghost" className="w-full justify-start" asChild>
+          <Button
+            variant={is('settings/authentication')}
+            className="w-full justify-start"
+            asChild
+          >
             <Link to="/settings/authentication">
               <KeyRoundIcon className="mr-2 h-4 w-4" />
               Authentication
             </Link>
           </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
+          <Button
+            variant={is('settings/backup')}
+            className="w-full justify-start"
+            asChild
+          >
             <Link to="/settings/backup">
               <DatabaseBackupIcon className="mr-2 h-4 w-4" />
               Backup
             </Link>
           </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
-            <Link to="/settings/peers">
+          <Button
+            variant={is('settings/links')}
+            className="w-full justify-start"
+            asChild
+          >
+            <Link to="/settings/links">
               <StretchVerticalIcon className="mr-2 h-4 w-4" />
-              Peers
+              Links
             </Link>
           </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
+          <Button
+            variant={is('settings/webserver')}
+            className="w-full justify-start"
+            asChild
+          >
             <Link to="/settings/webserver">
               <SplitIcon className="mr-2 h-4 w-4" />
               Webserver

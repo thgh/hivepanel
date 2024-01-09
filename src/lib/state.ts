@@ -120,6 +120,18 @@ export const swarm = {
       }
     }
   },
+
+  async load() {
+    try {
+      const ok = await engine.get<Swarm>('/swarm', {
+        validateStatus: () => true,
+      })
+      state.swarmAt = Date.now()
+      state.swarm = ok.status < 222 ? ok.data : undefined
+      console.log('🐝 Loaded swarm', state.swarm?.Version)
+      return state.swarm
+    } catch (error) {}
+  },
 }
 
 /** Load data required for authentication */

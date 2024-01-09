@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 
 import { withDate } from '@/lib/date'
 import { engine } from '@/lib/docker'
-import { isSwarmManager, state } from '@/lib/state'
+import { isSwarmManager, state, swarm } from '@/lib/state'
 
 export async function USE(req: Request, res: Response) {
   if (!(await isSwarmManager())) {
@@ -18,6 +18,10 @@ export async function USE(req: Request, res: Response) {
       data: req.body,
       params: req.query,
     })
+
+    if (req.path.startsWith('/swarm/update')) {
+      await swarm.load()
+    }
 
     if (req.path.endsWith('/logs')) {
       console.log('logs')
