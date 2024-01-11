@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { engine, updateService } from '@/lib/docker-client'
+import { isShortMount, isVolumeName } from '@/lib/docker-util'
 import { refreshServices } from '@/lib/useRefresh'
 
 import type { Service, ServiceSpec } from '../lib/docker'
@@ -90,6 +91,8 @@ export function EditServiceSheet({
 
 function EditServiceForm({ value }: { value: Service }) {
   const [editor, setEditor] = useState(value.Spec)
+  const TaskTemplate = editor.TaskTemplate as ContainerTaskSpec
+  const ContainerSpec = TaskTemplate.ContainerSpec
   const [json, setJSON] = useState('')
   const invalid = json ? !isValidJSON(json) : false
   const label = (key: string, value: string) => {
@@ -104,6 +107,15 @@ function EditServiceForm({ value }: { value: Service }) {
   useEffect(() => {
     if (!invalid && json) setEditor(JSON.parse(json))
   }, [!invalid && json])
+
+  // format to docker compose lines
+  const mounts =
+    ContainerSpec?.Mounts?.filter(isShortMount).map(
+      (m) =>
+        `${m.Source}${m.Target !== m.Source ? ':' + m.Target : ''}${
+          m.ReadOnly ? ':ro' : ''
+        }`
+    ) || []
 
   return (
     <form
@@ -127,16 +139,10 @@ function EditServiceForm({ value }: { value: Service }) {
           <Input
             id="image"
             value={
-              editor.Labels!['hive.deploy.image'] ||
-              (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
-                ?.Image ||
-              ''
+              editor.Labels!['hive.deploy.image'] || ContainerSpec?.Image || ''
             }
             onChange={(evt) => label('hive.deploy.image', evt.target.value)}
-            placeholder={
-              (editor.TaskTemplate as ContainerTaskSpec)?.ContainerSpec
-                ?.Image || 'nginxdemos/hello'
-            }
+            placeholder={ContainerSpec?.Image || 'nginxdemos/hello'}
             className="col-span-3"
           />
         </div>
@@ -161,6 +167,54 @@ function EditServiceForm({ value }: { value: Service }) {
             }
             placeholder="example.test"
             className="col-span-3"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="update" className="text-right">
+            Mounts
+          </Label>
+          <Textarea
+            id="env"
+            rows={mounts.length || 1}
+            value={mounts.join('\n') || ''}
+            placeholder={'Example: node_modules:/app/node_modules'}
+            onChange={(evt) =>
+              mutate((spec) => {
+                const mounts = evt.target.value.split('\n')
+                const ContainerSpec = (spec.TaskTemplate as ContainerTaskSpec)
+                  .ContainerSpec
+                const before = ContainerSpec!.Mounts || []
+                ContainerSpec!.Mounts = [
+                  // Keep unsupported complex mounts
+                  ...before.filter((m) => !isShortMount(m)),
+                  // Add updated shorthand mounts
+                  ...mounts.map((m) => {
+                    m = m.trimStart()
+                    if (m.startsWith('- ')) m = m.slice(2)
+
+                    let ReadOnly = false
+                    if (m.endsWith(':ro')) {
+                      ReadOnly = true
+                      m = m.slice(0, -3)
+                    }
+
+                    const source = m.split(':')[0]
+                    const target = m.slice(source.length + 1)
+                    return {
+                      Type: isVolumeName(source)
+                        ? ('volume' as const)
+                        : ('bind' as const),
+                      Source: target ? source : m,
+                      Target: target || m,
+                      ReadOnly,
+                    }
+                  }),
+                ]
+
+                return spec
+              })
+            }
+            className="col-span-3  min-h-[38px]"
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
@@ -200,15 +254,8 @@ function EditServiceForm({ value }: { value: Service }) {
           </Label>
           <Textarea
             id="env"
-            rows={
-              (editor.TaskTemplate as ContainerTaskSpec).ContainerSpec?.Env
-                ?.length || 1
-            }
-            value={
-              (
-                editor.TaskTemplate as ContainerTaskSpec
-              ).ContainerSpec?.Env?.join('\n') || ''
-            }
+            rows={ContainerSpec?.Env?.length || 1}
+            value={ContainerSpec?.Env?.join('\n') || ''}
             placeholder="PORT=80"
             onChange={(evt) =>
               mutate((spec) => {
