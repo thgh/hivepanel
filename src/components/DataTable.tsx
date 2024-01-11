@@ -73,7 +73,9 @@ export function DataTable<TData, TValue>({
   data,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(() => [
+    { desc: true, id: 'UpdatedAt' },
+  ])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const table = useReactTable({
     data,
