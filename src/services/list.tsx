@@ -57,6 +57,17 @@ export default function ServiceList() {
               : undefined,
           Env:
             Image === 'postgres' ? ['POSTGRES_PASSWORD=password'] : undefined,
+          Mounts:
+            Image === 'thgh/hivepanel'
+              ? [
+                  {
+                    Type: 'bind',
+                    Source: '/var/run/docker.sock',
+                    Target: '/var/run/docker.sock',
+                    ReadOnly: true,
+                  },
+                ]
+              : undefined,
         },
         Networks: [{ Target: 'hivenet' }],
       },
