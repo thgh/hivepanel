@@ -31,6 +31,8 @@ The prototype contains these features:
 - [ ] Wildcard certificate generation
 - [x] Environment variable editing
 - [ ] Hover over system info to see live stats
+- [x] Ports mapping
+- [x] Volumes management
 
 Up for discussion:
 

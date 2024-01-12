@@ -23,6 +23,13 @@ export default handleService((spec) => {
     ContainerSpec!.Env = ContainerSpec!.Env?.filter((env) => !env)
   }
 
+  // Remove invalid endpoint ports (without published port)
+  if (spec.EndpointSpec?.Ports) {
+    spec.EndpointSpec.Ports = spec.EndpointSpec.Ports.filter(
+      (port) => port.PublishedPort
+    )
+  }
+
   // Remove invalid volume mounts
   if (ContainerSpec?.Mounts) {
     ContainerSpec!.Mounts = ContainerSpec!.Mounts?.filter(
