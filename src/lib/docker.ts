@@ -7,7 +7,8 @@ import type {
   ServiceMode,
   ServiceSpec as DockerodeServiceSpec,
 } from 'dockerode'
-import type { Request, Response } from 'express'
+import type { Express, Request, Response } from 'express'
+import { WebSocketServer } from 'ws'
 
 import { ServiceLabel } from './types'
 
@@ -40,6 +41,68 @@ function isServiceSpec(req: Request) {
       req.body.Labels['hive.hostnames'])
   )
 }
+
+export function setupWebsocket(server: ReturnType<Express['listen']>) {
+  // Websockets
+  const wss = new WebSocketServer({ noServer: true }) // Use an appropriate port
+  server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request)
+    })
+  })
+  wss.on('connection', async (ws, request) => {
+    try {
+      const cancelTokenSource = axios.CancelToken.source()
+
+      const res = await engine.get<NodeJS.ReadableStream>(request.url!, {
+        params: { stdout: true, timestamps: true, follow: true },
+        responseType: 'stream',
+        cancelToken: cancelTokenSource.token,
+      })
+      const logStream = res.data
+
+      logStream.on('data', (chunk: Buffer) => {
+        if (ws.readyState > 1)
+          return console.log(
+            ' logStream.on.data but ws.readyState',
+            ws.readyState
+          )
+        ws.send(
+          chunk
+            .toString()
+            .split('\n')
+            .map((line) => line.slice(8))
+            .join('\n')
+        )
+      })
+
+      logStream.on('end', () => {
+        ws.close()
+      })
+
+      logStream.on('error', (error) => {
+        if (ws.readyState > 1) return
+        console.error('Error reading log stream3:', ws.readyState, error)
+        cancelTokenSource.cancel()
+      })
+
+      logStream.on('close', () => {
+        console.log('logStream.on close close')
+        ws.close()
+      })
+
+      ws.on('close', () => {
+        console.log('ws.closed by client')
+        cancelTokenSource.cancel()
+      })
+    } catch (error: any) {
+      if (ws.readyState > 1) return
+
+      console.error('Error reading log stream4:', ws.readyState, error.message)
+    }
+  })
+}
+
 
 // engine.interceptors.request.use((config) => {
 //   console.log('🐳', config.url, config.params)

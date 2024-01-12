@@ -11,7 +11,7 @@ export const secondFormatter = new Intl.DateTimeFormat('nl-BE', {
   minute: 'numeric',
   second: 'numeric',
 })
-export function humanDateSecond(date?: string) {
+export function humanDateSecond(date?: string | number) {
   return date ? secondFormatter.format(new Date(date)) : ''
 }
 

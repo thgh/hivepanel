@@ -4,6 +4,7 @@ import { createServer } from 'vite'
 
 import { serverRouter } from './api'
 import { enableDNS } from './api/dns'
+import { setupWebsocket } from './lib/docker'
 import { checkAuth, state } from './lib/state'
 
 enableDNS()
@@ -41,6 +42,8 @@ const server = app.listen(port, async () => {
 global.closeSignal = new Promise((resolve) =>
   server.on('close', () => resolve(1))
 )
+
+setupWebsocket(server)
 
 // Reload on file change
 if (import.meta.hot) {

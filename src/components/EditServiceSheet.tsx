@@ -1,7 +1,7 @@
 'use client'
 
 import type { ContainerTaskSpec } from 'dockerode'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { humanDateSecond } from '@/lib/date'
 import { engine, updateService } from '@/lib/docker-client'
 import { isShortMount, isVolumeName } from '@/lib/docker-util'
 import { refreshServices } from '@/lib/useRefresh'
@@ -47,9 +48,9 @@ export function EditServiceSheet({
       open={open}
       onOpenChange={(open) => {
         if (!open)
-          setTimeout(() => {
-            onClose()
-          }, 200)
+          // setTimeout(() => {
+          onClose()
+        // }, 200)
       }}
     >
       <SheetContent
@@ -128,7 +129,7 @@ function EditServiceForm({ value }: { value: Service }) {
       }}
     >
       <SheetHeader>
-        <SheetTitle>Edit service</SheetTitle>
+        <SheetTitle>Edit {editor.Name}</SheetTitle>
         <SheetDescription>Make changes to the service spec.</SheetDescription>
       </SheetHeader>
       <div className="grid gap-4 py-4">
@@ -372,22 +373,109 @@ function EditServiceForm({ value }: { value: Service }) {
 
 function ServiceLogs({ value }: { value: Service }) {
   const [logs, setLogs] = useState('')
+  const first = useRef(true)
+  const ws = useRef<WebSocket>()
+  const id = useRef<string>()
+  const close = useRef<NodeJS.Timeout>()
   useEffect(() => {
-    // axios to browser stream
-    engine
-      .get<string>('/services/' + value.ID + '/logs', {
-        params: { stdout: true },
-      })
-      .then((res) => {
-        // handle first character on each line of docker logs
-        // const logs: string = res as any
-        // const lines = logs.split('\n')
-        // let prev = ''
-
-        setLogs((prev) => prev + res)
-      })
+    clearTimeout(close.current)
+    // Close because of switch
+    if (id.current && id.current !== value.ID) {
+      ws.current?.close()
+      id.current = undefined
+      ws.current = undefined
+    }
+    // Open
+    if (!id.current) {
+      id.current = value.ID
+      ws.current = new WebSocket(
+        `${window.location.origin.replace('http', 'ws')}/services/${
+          value.ID
+        }/logs`
+      )
+      ws.current.onmessage = (e) => {
+        setLogs((prev) => prev + e.data)
+      }
+    }
+    return () => {
+      close.current = setTimeout(() => {
+        ws.current?.close()
+        id.current = undefined
+        ws.current = undefined
+      }, 200)
+    }
   }, [value.ID])
-  return <pre className="flex-1 min-h-[800px] font-mono text-sm">{logs}</pre>
+
+  const groupedPerTime = []
+  let at = 0
+  for (const line of logs.split('\n')) {
+    const next = line.split(' ', 1)[0]
+    const text = line.slice(next.length + 1)
+    if (Math.abs(Date.parse(next) - at) > 100) {
+      at = Date.parse(next)
+      groupedPerTime.push(at)
+    }
+    groupedPerTime.push(text)
+  }
+
+  const followBottom = useRef(true)
+  useEffect(() => {
+    if (first.current) return
+    if (!bottom.current) return
+
+    const elem = bottom.current
+    const parent = bottom.current.closest('.overflow-auto')
+    if (!parent) return
+
+    const listener = () => {
+      if (!elem) return console.warn('no elem to follow')
+      const rect = elem.getBoundingClientRect()
+      const next = rect.top < window.innerHeight
+      if (followBottom.current === next) return
+      followBottom.current = next
+      console.log('followBottom', next)
+    }
+    parent.addEventListener('scroll', listener, { passive: true })
+    return () => {
+      parent.removeEventListener('scroll', listener)
+    }
+  }, [first.current])
+
+  const bottom = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!followBottom.current) return
+    bottom.current?.scrollIntoView({
+      behavior: first.current ? 'instant' : 'smooth',
+    })
+
+    let mounted = true
+    const t = setTimeout(() => {
+      if (mounted) first.current = false
+    }, 500)
+    return () => {
+      mounted = false
+      clearTimeout(t)
+    }
+  }, [groupedPerTime.length])
+
+  return (
+    <>
+      <div className="text-xs">
+        {groupedPerTime.map((line, i) =>
+          typeof line === 'number' ? (
+            <div key={i} className=" text-gray-500 mt-2 select-none">
+              {new Date(line).toJSON()} - {humanDateSecond(line)}
+            </div>
+          ) : (
+            <div className="font-mono" key={i}>
+              {line}
+            </div>
+          )
+        )}
+      </div>
+      <div ref={bottom} className="logbottom h-40"></div>
+    </>
+  )
 }
 
 function isValidJSON(str: string) {
