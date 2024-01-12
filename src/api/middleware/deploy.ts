@@ -20,7 +20,7 @@ export default handleService((spec) => {
 
   // Remove invalid env variables
   if (ContainerSpec?.Env) {
-    ContainerSpec!.Env = ContainerSpec!.Env?.filter((env) => !env)
+    ContainerSpec.Env = ContainerSpec.Env.filter(Boolean)
   }
 
   // Remove invalid endpoint ports (without published port)
