@@ -289,6 +289,25 @@ function EditServiceForm({ value }: { value: Service }) {
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="env" className="text-right">
+            Environment
+          </Label>
+          <Textarea
+            id="env"
+            rows={ContainerSpec?.Env?.length || 1}
+            value={ContainerSpec?.Env?.join('\n') || ''}
+            placeholder="PORT=80"
+            onChange={(evt) =>
+              mutate((spec) => {
+                ;(spec.TaskTemplate as ContainerTaskSpec).ContainerSpec!.Env =
+                  evt.target.value.split('\n')
+                return spec
+              })
+            }
+            className="col-span-3  min-h-[38px]"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="update" className="text-right">
             Update strategy
           </Label>
@@ -317,25 +336,6 @@ function EditServiceForm({ value }: { value: Service }) {
             value={editor.Labels!['hive.tint']}
             onChange={(evt) => label('hive.tint', evt.target.value)}
             className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="env" className="text-right">
-            Environment
-          </Label>
-          <Textarea
-            id="env"
-            rows={ContainerSpec?.Env?.length || 1}
-            value={ContainerSpec?.Env?.join('\n') || ''}
-            placeholder="PORT=80"
-            onChange={(evt) =>
-              mutate((spec) => {
-                ;(spec.TaskTemplate as ContainerTaskSpec).ContainerSpec!.Env =
-                  evt.target.value.split('\n')
-                return spec
-              })
-            }
-            className="col-span-3  min-h-[38px]"
           />
         </div>
       </div>
