@@ -1,7 +1,7 @@
 {
   "name": "hivepanel",
   "description": "Get your swarm together with 📦 hivepanel, a Docker Swarm control panel",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": false,
   "license": "UNLICENSED",
   "bin": {
@@ -19,6 +19,7 @@
     "fix": "prettier --write .",
     "recent": "(cd recently-used && vc --prod)",
     "prepare": "yarn build",
+    "postversion": "git push --tags",
     "docker": "yarn dbuild && yarn drun",
     "dbuild": "yarn build && docker build . -t thgh/hivepanel",
     "dbuildx": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8",
