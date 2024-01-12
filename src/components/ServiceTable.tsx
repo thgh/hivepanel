@@ -8,6 +8,7 @@ import useSWR from 'swr'
 import { Dated, humanDateMinute } from '@/lib/date'
 import type { Service, ServiceSpec, Task, TaskAndStats } from '@/lib/docker'
 import { updateService } from '@/lib/docker-client'
+import { parseImageName } from '@/lib/docker-util'
 import { formatBytes } from '@/lib/formatBytes'
 import { splitHostnames } from '@/lib/labels'
 import { fetcher, useServerState } from '@/lib/swr'
@@ -50,7 +51,7 @@ export const columns: ColumnDef<Service>[] = [
     ),
     cell: ({ row }) => {
       const spec: ServiceSpec = row.original.Spec
-      const value: string = row.getValue('image')
+      const image = parseImageName(row.getValue('image'))
       const hostname = spec.Labels['hive.hostnames']
       if (hostname) {
         let first = splitHostnames(hostname)[0]
@@ -67,8 +68,21 @@ export const columns: ColumnDef<Service>[] = [
             <div className="group-hover:underline group-focus-visible:underline">
               {first}
             </div>
-            <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
-              {value}
+            <div className="text-muted-foreground text-xs flex max-w-[200px] whitespace-nowrap">
+              {image.repo ? (
+                <>
+                  <div className="flex-shrink text-ellipsis overflow-hidden">
+                    {image.repo}
+                  </div>
+                  /
+                </>
+              ) : null}
+              <div className="flex-shrink text-ellipsis overflow-hidden">
+                {image.name}
+              </div>
+              {image.tag ? (
+                <div className="flex-shrink-0">:{image.tag}</div>
+              ) : null}
             </div>
           </a>
         )
@@ -93,8 +107,21 @@ export const columns: ColumnDef<Service>[] = [
           <div className="group-hover:underline font-medium invisible group-hover:visible text-muted-foreground">
             Add hostname...
           </div>
-          <div className="text-muted-foreground text-xs max-w-[100px] text-ellipsis overflow-hidden whitespace-nowrap">
-            {value}
+          <div className="text-muted-foreground text-xs flex max-w-[210px] whitespace-nowrap">
+            {image.repo ? (
+              <>
+                <div className="flex-shrink text-ellipsis overflow-hidden">
+                  {image.repo}
+                </div>
+                /
+              </>
+            ) : null}
+            <div className="flex-shrink text-ellipsis overflow-hidden">
+              {image.name}
+            </div>
+            {image.tag ? (
+              <div className="flex-shrink-0">:{image.tag}</div>
+            ) : null}
           </div>
         </div>
       )

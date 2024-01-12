@@ -21,3 +21,11 @@ export function isShortMount(mount: MountSettings) {
 export function isVolumeName(name: string) {
   return name.match(/^[a-zA-Z0-9._-]+$/) !== null
 }
+
+export function parseImageName(full: string) {
+  let name = full.split(':')[0]
+  let tag = full.slice(name.length + 1)
+  let repo = ''
+  if (name.includes('/')) [repo, name] = name.split('/')
+  return { repo, name, tag }
+}
