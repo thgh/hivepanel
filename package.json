@@ -1,7 +1,7 @@
 {
   "name": "hivepanel",
   "description": "Get your swarm together with 📦 hivepanel, a Docker Swarm control panel",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": false,
   "license": "UNLICENSED",
   "bin": {
@@ -87,7 +87,6 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "clsx": "^2.0.0",
-    "ws": "^8.16.0",
     "cmdk": "^0.2.0",
     "cookie-parser": "^1.4.6",
     "eslint": "^8.49.0",
@@ -112,6 +111,7 @@
     "typescript": "^5.2.2",
     "vite": "^4.4.9",
     "vite-node": "^0.34.5",
-    "vitest": "^0.34.5"
+    "vitest": "^0.34.5",
+    "ws": "^8.16.0"
   }
 }
