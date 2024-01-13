@@ -1,7 +1,7 @@
 import { createServer } from './index'
+import { port } from './lib/env'
 
 // Default port in dev is 23088
-const port = parseInt(process.env.PORT || '80')
 createServer(port)
 
 // Listen for termination signals allows Ctrl+C in docker run

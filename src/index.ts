@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import express from 'express'
 
 import { serverRouter } from './api'
+import { buildDate, version } from './lib/env'
 import { checkAuth, state } from './lib/state'
 
 export function createServer(port: number) {
@@ -27,13 +28,11 @@ export function createServer(port: number) {
       const credentials = await checkAuth().catch((err) => {
         console.log(err)
       })
-      if (credentials) {
-        console.log(
-          `📦 Hivepanel is running on http://localhost:${port}/#password=${credentials.password}`
-        )
-      } else {
-        console.log(`📦 Hivepanel is running on http://localhost:${port}`)
-      }
+      console.log(
+        `📦 Hivepanel ${version} ${buildDate}\nServer is listening on ${
+          state.origin
+        }${credentials ? `/#password=${credentials.password}` : ''}`
+      )
       resolve(server)
     })
   })
