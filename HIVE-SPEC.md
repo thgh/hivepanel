@@ -30,6 +30,16 @@ The value of this label must contain a docker volume name OR a host path. If the
 
 A redeploy of this deployment should be a noop.
 
+### hive.port
+
+This label can be used to set the container port that should be exposed. If the value is not a valid port, it should be ignored and the default port: 80 should be used.
+
+### hive.caddy
+
+This label indicates that the service should be exposed using Caddy. If the value is `auto`, the service should automatically configure Caddy on every service update. If the value is `custom`, caddy should not be configured automatically.
+
+Any other value should be ignored and means that the default reverse proxy should be used.
+
 ### hive.replicas
 
 This label can be used to remember the desired number of replicas for a service that is paused. It should not be interpreted on service update. It should be used when unpausing a service. It should correspond with `Spec.Mode.Replicated.Replicas`.

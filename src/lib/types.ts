@@ -42,8 +42,12 @@ export type ServiceLabel =
   | 'hive.deploy.image'
   | 'hive.deploy.static'
   | 'hive.hostnames'
-  /** Don't manage this service */
+  /** Set up reverse proxy using caddy */
+  | 'hive.caddy'
+  /** Don't manage this service at all */
   | 'hive.ignore'
+  /** Container port */
+  | 'hive.port'
   | 'hive.replicas'
   | 'hive.tint'
   | 'hive.web.http'

@@ -103,7 +103,7 @@ function EditServiceForm({
   const ContainerSpec = TaskTemplate.ContainerSpec
   const [json, setJSON] = useState('')
   const invalid = json ? !isValidJSON(json) : false
-  const label = (key: string, value: string) => {
+  const label = (key: string, value: string | undefined) => {
     if (json) setJSON('')
     setEditor((spec) => ({ ...spec, Labels: { ...spec.Labels, [key]: value } }))
   }
@@ -124,6 +124,8 @@ function EditServiceForm({
           m.ReadOnly ? ':ro' : ''
         }`
     ) || []
+
+  const hasProxy = /[a-z]/.test(editor.Labels!['hive.hostnames'] || '')
 
   return (
     <form
@@ -183,75 +185,97 @@ function EditServiceForm({
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="ports" className="text-right">
-            Ports
-          </Label>
-          <Textarea
-            id="ports"
-            value={
-              editor.EndpointSpec?.Ports?.map(
-                (p) =>
-                  `${p.PublishedPort || ''}${
-                    p.TargetPort && p.TargetPort !== p.PublishedPort
-                      ? ':' + p.TargetPort
-                      : ''
-                  }${
-                    p.PublishMode && p.PublishMode !== 'ingress'
-                      ? ':' + p.PublishMode
-                      : ''
-                  }${
-                    p.Protocol && p.Protocol !== 'tcp' ? ':' + p.Protocol : ''
-                  }${
-                    typeof p.Name === 'string'
-                      ? (p.PublishedPort ? ':' : '') + p.Name
-                      : ''
-                  }`
-              ).join('\n') || ''
-            }
-            onChange={(evt) => {
-              const ports = evt.target.value.split('\n')
-              mutate((spec) => {
-                if (!spec.EndpointSpec) spec.EndpointSpec = {}
-                spec.EndpointSpec!.Ports = ports.map((p) => {
-                  let PublishMode = 'ingress' as 'host',
-                    Protocol = 'tcp' as any,
-                    PublishedPort,
-                    TargetPort
-                  p = p.trimStart()
-                  if (p.startsWith('- ')) p = p.slice(2)
-                  let parts = p.split(':')
-                  if (parts.includes('host')) PublishMode = 'host'
-                  if (parts.includes('udp')) Protocol = 'udp'
-                  if (parts.includes('sctp')) Protocol = 'sctp'
-                  parts = parts.filter(
-                    (p) => !['host', 'udp', 'sctp'].includes(p)
-                  )
-                  // regex to test if string is only numbers
-                  if (parts[0] && /\d/.test(parts[0])) {
-                    PublishedPort = parseInt(parts[0])
-                    parts.shift()
+          {hasProxy ? (
+            <Label htmlFor="port" className="text-right">
+              Container port
+            </Label>
+          ) : (
+            <Label htmlFor="ports" className="text-right">
+              Expose ports
+            </Label>
+          )}
+          <div className="col-span-3 flex gap-4 items-center">
+            {hasProxy && (
+              <>
+                <Input
+                  id="port"
+                  value={editor.Labels!['hive.port'] || ''}
+                  onChange={(evt) =>
+                    label('hive.port', evt.target.value || undefined)
                   }
-                  if (parts[0] && /\d/.test(parts[0])) {
-                    TargetPort = parseInt(parts[0])
-                    parts.shift()
-                  }
-                  const Name = parts.length ? parts.join(':') : undefined
+                  placeholder="80"
+                />
+                <Label htmlFor="ports" className="text-right whitespace-nowrap">
+                  Expose ports
+                </Label>
+              </>
+            )}
+            <Textarea
+              id="ports"
+              value={
+                editor.EndpointSpec?.Ports?.map(
+                  (p) =>
+                    `${p.PublishedPort || ''}${
+                      p.TargetPort && p.TargetPort !== p.PublishedPort
+                        ? ':' + p.TargetPort
+                        : ''
+                    }${
+                      p.PublishMode && p.PublishMode !== 'ingress'
+                        ? ':' + p.PublishMode
+                        : ''
+                    }${
+                      p.Protocol && p.Protocol !== 'tcp' ? ':' + p.Protocol : ''
+                    }${
+                      typeof p.Name === 'string'
+                        ? (p.PublishedPort ? ':' : '') + p.Name
+                        : ''
+                    }`
+                ).join('\n') || ''
+              }
+              onChange={(evt) => {
+                const ports = evt.target.value.split('\n')
+                mutate((spec) => {
+                  if (!spec.EndpointSpec) spec.EndpointSpec = {}
+                  spec.EndpointSpec!.Ports = ports.map((p) => {
+                    let PublishMode = 'ingress' as 'host',
+                      Protocol = 'tcp' as any,
+                      PublishedPort,
+                      TargetPort
+                    p = p.trimStart()
+                    if (p.startsWith('- ')) p = p.slice(2)
+                    let parts = p.split(':')
+                    if (parts.includes('host')) PublishMode = 'host'
+                    if (parts.includes('udp')) Protocol = 'udp'
+                    if (parts.includes('sctp')) Protocol = 'sctp'
+                    parts = parts.filter(
+                      (p) => !['host', 'udp', 'sctp'].includes(p)
+                    )
+                    // regex to test if string is only numbers
+                    if (parts[0] && /\d/.test(parts[0])) {
+                      PublishedPort = parseInt(parts[0])
+                      parts.shift()
+                    }
+                    if (parts[0] && /\d/.test(parts[0])) {
+                      TargetPort = parseInt(parts[0])
+                      parts.shift()
+                    }
+                    const Name = parts.length ? parts.join(':') : undefined
 
-                  return {
-                    PublishedPort,
-                    TargetPort,
-                    PublishMode,
-                    Protocol,
-                    Name,
-                  }
+                    return {
+                      PublishedPort,
+                      TargetPort,
+                      PublishMode,
+                      Protocol,
+                      Name,
+                    }
+                  })
+                  return spec
                 })
-                return spec
-              })
-            }}
-            rows={editor.EndpointSpec?.Ports?.length || 1}
-            placeholder="host:container"
-            className="col-span-3"
-          />
+              }}
+              rows={editor.EndpointSpec?.Ports?.length || 1}
+              placeholder="host:container"
+            />
+          </div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="mounts" className="text-right">

@@ -82,6 +82,11 @@ export default handleService(async (spec) => {
     // console.log('caddy containers', containers.data.length, containers.data[0])
   }
 
+  // TODO: check if any other reverse proxy is running
+  if (spec.Labels['hive.caddy'] === 'custom') return
+
+  const port = spec.Labels['hive.port'] || ''
+
   spec.Labels = {
     ...spec.Labels,
     caddy: splitHostnames(spec.Labels['hive.hostnames'])
@@ -90,7 +95,7 @@ export default handleService(async (spec) => {
       )
       .filter(Boolean)
       .join(', '),
-    'caddy.reverse_proxy': '{{upstreams}}',
+    'caddy.reverse_proxy': `{{upstreams${port ? ' ' + port : ''}}}`,
     // 'caddy.tls': 'internal',
   }
 })
