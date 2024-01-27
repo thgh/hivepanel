@@ -178,6 +178,7 @@ export async function isSwarmManager({ revalidate = 10 } = {}) {
   const ok = await engine.get<Swarm>('/swarm', { validateStatus: () => true })
   state.swarmAt = Date.now()
   state.swarm = ok.status < 222 ? ok.data : undefined
+  console.log('🐝 Loaded swarm', state.swarm?.Spec.Labels)
   return !!state.swarm
 }
 

@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import { Router } from 'express'
 
+import * as config from './config'
 import * as engine from './engine'
 import { authMiddleware } from './middleware/auth'
 import deploy from './middleware/deploy'
@@ -18,6 +19,7 @@ serverRouter.use(cookieParser())
 serverRouter.use(authMiddleware)
 serverRouter.use('/state', stateMiddleware)
 serverRouter.use('/onboarding', onboardingMiddleware)
+serverRouter.get('/config', config.GET)
 
 // Service spec middleware
 serverRouter.use(Networks)
