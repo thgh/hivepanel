@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import express from 'express'
 
 import { serverRouter } from './api'
+import { setupWebsocket } from './lib/docker'
 import { buildDate, version } from './lib/env'
 import { checkAuth, state } from './lib/state'
 
@@ -26,7 +27,7 @@ export function createServer(port: number) {
       const port = (server.address() as AddressInfo).port
       state.origin = `http://localhost:${port}`
       const credentials = await checkAuth().catch((err) => {
-        console.log(err)
+        console.log('credentials.err', err)
       })
       console.log(
         `📦 Hivepanel ${version} ${buildDate}\nServer is listening on ${
@@ -35,5 +36,6 @@ export function createServer(port: number) {
       )
       resolve(server)
     })
+    setupWebsocket(server)
   })
 }

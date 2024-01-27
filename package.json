@@ -21,6 +21,7 @@
     "prepare": "yarn build",
     "postversion": "git push --tags",
     "docker": "yarn dbuild && yarn drun",
+    "dd": "yarn build && docker build . -t thgh/hivepanel:dev",
     "dbuild": "yarn build && docker build . -t thgh/hivepanel",
     "dbuildx": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8",
     "dbuildxp": "yarn build && docker buildx build . -t thgh/hivepanel -o type=image --platform=linux/amd64,linux/arm64/v8 --push",

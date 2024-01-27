@@ -3,6 +3,7 @@
 import type { ContainerTaskSpec } from 'dockerode'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   Select,
@@ -24,7 +25,6 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -76,6 +76,7 @@ export function EditServiceSheet({
               <EditServiceForm
                 key={value ? value.ID + value?.Version?.Index : ''}
                 value={value}
+                onClose={onClose}
               />
             )}
           </TabsContent>
@@ -90,7 +91,13 @@ export function EditServiceSheet({
   )
 }
 
-function EditServiceForm({ value }: { value: Service }) {
+function EditServiceForm({
+  value,
+  onClose,
+}: {
+  value: Service
+  onClose: () => void
+}) {
   const [editor, setEditor] = useState(value.Spec)
   const TaskTemplate = editor.TaskTemplate as ContainerTaskSpec
   const ContainerSpec = TaskTemplate.ContainerSpec
@@ -123,9 +130,14 @@ function EditServiceForm({ value }: { value: Service }) {
       className="contents"
       onSubmit={async (e) => {
         e.preventDefault()
-        await updateService(value, () => (json ? JSON.parse(json) : editor))
-        refreshServices(6)
-        console.log('submit', json)
+        try {
+          await updateService(value, () => (json ? JSON.parse(json) : editor))
+          toast('Service spec updated')
+          refreshServices(6)
+          console.log('submit', json)
+        } catch (error: any) {
+          alert('Failed to save changes: ' + error.message)
+        }
       }}
     >
       <SheetHeader>
@@ -242,11 +254,11 @@ function EditServiceForm({ value }: { value: Service }) {
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="update" className="text-right">
+          <Label htmlFor="mounts" className="text-right">
             Mounts
           </Label>
           <Textarea
-            id="env"
+            id="mounts"
             rows={mounts.length || 1}
             value={mounts.join('\n') || ''}
             placeholder={'Example: node_modules:/app/node_modules'}
@@ -316,7 +328,7 @@ function EditServiceForm({ value }: { value: Service }) {
             onValueChange={(value) => label('hive.update', value)}
             defaultValue={editor.Labels!['hive.update']}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger id="update" className="w-[180px]">
               <SelectValue placeholder="Stop then start" />
             </SelectTrigger>
             <SelectContent>
@@ -356,16 +368,16 @@ function EditServiceForm({ value }: { value: Service }) {
           onClick={async () => {
             if (!confirm('Are you sure?')) return
             await engine.delete('/services/' + value.ID)
+            toast('Service deleted')
+            onClose()
             refreshServices(3)
           }}
         >
           Delete
         </Button>
-        <SheetClose asChild>
-          <Button type="submit" disabled={invalid}>
-            Save changes
-          </Button>
-        </SheetClose>
+        <Button type="submit" disabled={invalid}>
+          Save changes
+        </Button>
       </SheetFooter>
     </form>
   )

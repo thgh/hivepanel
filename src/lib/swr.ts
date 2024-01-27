@@ -10,7 +10,12 @@ export const fetcher = (url: string) =>
     .then((res) => res.json())
     .catch((err) => {
       const message = err.response?.data?.message || err.message
-      console.error(err.message, err.config?.url, err.response?.data)
+      console.error(
+        'fetcher.error',
+        err.message,
+        err.config?.url,
+        err.response?.data
+      )
       return Promise.reject(new Error('Fetch error: ' + message))
     })
 

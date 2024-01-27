@@ -10,7 +10,9 @@ export default handleService(async (spec) => {
   let created = swarm.get('hive.caddy.service')
   // Check if caddy service exists
   if (created) {
-    const exists = await engine.get('/services/' + created)
+    const exists = await engine.get('/services/' + created, {
+      validateStatus: () => true,
+    })
     if (exists.status !== 200) {
       console.log('caddy service exists', exists.status, exists.data)
       swarm.set('hive.caddy.service', '')
