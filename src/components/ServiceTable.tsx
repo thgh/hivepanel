@@ -1,8 +1,8 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { PauseCircleIcon, PlayIcon } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { PauseCircleIcon, PlayIcon, TerminalSquareIcon } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 
 import { Dated, humanDateMinute } from '@/lib/date'
@@ -19,6 +19,21 @@ import { DataTable, SortButton } from './DataTable'
 import { Button } from './ui/button'
 
 export const columns: ColumnDef<Service>[] = [
+  {
+    id: 'cmd',
+    cell: ({ row }) => {
+      return (
+        <Link
+          to={'/?service=' + row.original.ID + '&tab=logs'}
+          className="flex -m-4 py-4 pl-4 group"
+          onClick={(evt) => evt.stopPropagation()}
+        >
+          <TerminalSquareIcon className="stroke-[1.5px] opacity-50 group-hover:opacity-100" />
+          {/* <TerminalIcon className="opacity-40 opacity-60 group-hover:text-background group-hover:bg-foreground group-hover:opacity-70 rounded" /> */}
+        </Link>
+      )
+    },
+  },
   {
     id: 'name',
     accessorKey: 'Spec.Name',
@@ -37,9 +52,15 @@ export const columns: ColumnDef<Service>[] = [
           </div>
         )
       return (
-        <Button variant="ghost" size="sm" className="-my-[8px] -mx-3 text-left">
-          {name}
-        </Button>
+        <div className="-my-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-my-[8px] -mx-3 text-left"
+          >
+            {name}
+          </Button>
+        </div>
       )
     },
   },
@@ -58,7 +79,7 @@ export const columns: ColumnDef<Service>[] = [
         if (first === '*') first = window.location.hostname
         return (
           <a
-            className="-my-2 group"
+            className="block -my-2 group"
             href={'http://' + first}
             target="_blank"
             onClick={(evt) => {

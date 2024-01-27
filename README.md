@@ -72,3 +72,11 @@ Alternatives:
 - Swirl
 - Traefik Pilot
 - UCP
+
+## Publish new version
+
+```bash
+yarn version --minor
+# or
+yarn version --patch
+```
