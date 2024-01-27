@@ -9,6 +9,7 @@ import {
   LogOutIcon,
   NetworkIcon,
   RectangleHorizontalIcon,
+  SearchXIcon,
   ServerIcon,
   SplitIcon,
   StretchHorizontalIcon,
@@ -167,6 +168,16 @@ export function Sidebar({ className }: SidebarProps) {
             <Link to="/settings/links">
               <StretchVerticalIcon className="mr-2 h-4 w-4" />
               Links
+            </Link>
+          </Button>
+          <Button
+            variant={is('settings/prune')}
+            className="w-full justify-start"
+            asChild
+          >
+            <Link to="/settings/prune">
+              <SearchXIcon className="mr-2 h-4 w-4" />
+              Prune
             </Link>
           </Button>
           <Button

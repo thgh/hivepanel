@@ -1,6 +1,7 @@
 // format using toPrecision
 export function formatBytes(bytes: number) {
   if (typeof bytes !== 'number') return
+  if (bytes < 1) return '0'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   const unit = Math.floor(Math.log(bytes) / Math.log(1024))
   const value = (bytes / Math.pow(1024, Math.floor(unit))).toPrecision(3)

@@ -28,6 +28,7 @@ import ServiceList from './services/list'
 import SettingsAuthentication from './settings/authentication'
 import SettingsBackup from './settings/backup'
 import SettingsLinks from './settings/links'
+import SettingsPrune from './settings/prune'
 import SettingsWebserver from './settings/webserver'
 
 export const router = createBrowserRouter([
@@ -76,6 +77,10 @@ export const router = createBrowserRouter([
       {
         path: 'links',
         element: <SettingsLinks />,
+      },
+      {
+        path: 'prune',
+        element: <SettingsPrune />,
       },
       {
         path: 'webserver',

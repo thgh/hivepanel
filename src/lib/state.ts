@@ -175,11 +175,8 @@ export async function isSwarmManager({ revalidate = 10 } = {}) {
   if (!(await isDockerRunning())) {
     return false
   }
-  const ok = await engine.get<Swarm>('/swarm', { validateStatus: () => true })
-  state.swarmAt = Date.now()
-  state.swarm = ok.status < 222 ? ok.data : undefined
-  console.log('🐝 Loaded swarm', state.swarm?.Spec.Labels)
-  return !!state.swarm
+  const ok = await swarm.load()
+  return !!ok
 }
 
 export async function diskStats({ revalidate = 10 } = {}) {

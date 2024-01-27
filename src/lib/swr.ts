@@ -1,3 +1,4 @@
+import { ImageInfo } from 'dockerode'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 
@@ -59,4 +60,11 @@ export function parseSwarmLinks(labels: Record<string, string>) {
     .filter(([label, value]) => value && label.startsWith('hive.link.'))
     .map(([label, value]) => ({ ...(JSON.parse(value) as SwarmLink), label }))
     .filter((link) => link.type === 'hivepanel')
+}
+
+export function useSystemDF() {
+  return useSWR<Dated<{ Images: ImageInfo[] }>>(
+    '/api/engine/system/df?type=image',
+    fetcher
+  )
 }
