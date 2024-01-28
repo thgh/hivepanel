@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser'
 import { Router } from 'express'
 
 import * as config from './config'
+import * as diskUsage from './disk-usage'
 import * as engine from './engine'
 import { authMiddleware } from './middleware/auth'
 import deploy from './middleware/deploy'
@@ -10,6 +11,7 @@ import { onboardingMiddleware } from './middleware/onboarding'
 import { stateMiddleware } from './middleware/state'
 import UpdateConfig from './middleware/UpdateConfig'
 import web from './middleware/web'
+import * as registry from './registry'
 import * as stats from './stats'
 
 export const serverRouter = Router()
@@ -20,6 +22,8 @@ serverRouter.use(authMiddleware)
 serverRouter.use('/state', stateMiddleware)
 serverRouter.use('/onboarding', onboardingMiddleware)
 serverRouter.get('/config', config.GET)
+serverRouter.get('/registry', registry.GET)
+serverRouter.get('/disk-usage', diskUsage.GET)
 
 // Service spec middleware
 serverRouter.use(Networks)

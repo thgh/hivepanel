@@ -70,6 +70,10 @@ export type SwarmLabel =
   | 'hive.caddy.volume'
   // Service that acts as web server
   | 'hive.caddy.service'
+  // Volume for the registry data
+  | 'hive.registry.volume'
+  // Service that acts as registry
+  | 'hive.registry.service'
   /** Require authentication */
   | `${'hive.panel.user.'}${string}`
   | `${'hive.session.'}${string}`

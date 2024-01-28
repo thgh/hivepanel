@@ -22,6 +22,10 @@ export function isVolumeName(name: string) {
   return name.match(/^[a-zA-Z0-9._-]+$/) !== null
 }
 
+export function getVolumeType(source: string) {
+  return isVolumeName(source) ? ('volume' as const) : ('bind' as const)
+}
+
 export function parseImageName(full: string) {
   let name = full.split(':')[0]
   let tag = full.slice(name.length + 1)

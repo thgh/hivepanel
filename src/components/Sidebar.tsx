@@ -4,6 +4,7 @@ import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import axios from 'axios'
 import {
   ChevronDownIcon,
+  CylinderIcon,
   DatabaseBackupIcon,
   KeyRoundIcon,
   LogOutIcon,
@@ -178,6 +179,16 @@ export function Sidebar({ className }: SidebarProps) {
             <Link to="/settings/prune">
               <SearchXIcon className="mr-2 h-4 w-4" />
               Prune
+            </Link>
+          </Button>
+          <Button
+            variant={is('settings/registry')}
+            className="w-full justify-start"
+            asChild
+          >
+            <Link to="/settings/registry">
+              <CylinderIcon className="mr-2 h-4 w-4" />
+              Registry
             </Link>
           </Button>
           <Button

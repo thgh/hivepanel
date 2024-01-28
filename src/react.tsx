@@ -29,6 +29,7 @@ import SettingsAuthentication from './settings/authentication'
 import SettingsBackup from './settings/backup'
 import SettingsLinks from './settings/links'
 import SettingsPrune from './settings/prune'
+import SettingsRegistry from './settings/registry'
 import SettingsWebserver from './settings/webserver'
 
 export const router = createBrowserRouter([
@@ -81,6 +82,10 @@ export const router = createBrowserRouter([
       {
         path: 'prune',
         element: <SettingsPrune />,
+      },
+      {
+        path: 'registry',
+        element: <SettingsRegistry />,
       },
       {
         path: 'webserver',

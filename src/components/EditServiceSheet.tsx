@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { humanDateSecond } from '@/lib/date'
 import { engine, updateService } from '@/lib/docker-client'
-import { isShortMount, isVolumeName } from '@/lib/docker-util'
+import { getVolumeType, isShortMount } from '@/lib/docker-util'
 import { refreshServices } from '@/lib/useRefresh'
 
 import type { Service, ServiceSpec } from '../lib/docker'
@@ -309,9 +309,7 @@ function EditServiceForm({
                     const source = m.split(':')[0]
                     const target = m.slice(source.length + 1)
                     return {
-                      Type: isVolumeName(source)
-                        ? ('volume' as const)
-                        : ('bind' as const),
+                      Type: getVolumeType(source),
                       Source: target ? source : m,
                       Target: target || m,
                       ReadOnly,

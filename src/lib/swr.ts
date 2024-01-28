@@ -1,10 +1,13 @@
-import { ImageInfo } from 'dockerode'
+import { ImageInfo, VolumeInspectInfo } from 'dockerode'
+import { FormEvent, useCallback, useRef, useState } from 'react'
 import useSWR from 'swr'
 import useSWRImmutable from 'swr/immutable'
 
 import { Dated } from './date'
-import type { Node, Service, TaskAndStats } from './docker'
-import { ServerState, SwarmLink } from './types'
+import { type Node, type Service, type TaskAndStats } from './docker'
+import { engine } from './docker-client'
+import { ServerState, SwarmLabel, SwarmLink } from './types'
+import useEvent from './useEvent'
 
 export const fetcher = (url: string) =>
   fetch(url)
@@ -63,8 +66,50 @@ export function parseSwarmLinks(labels: Record<string, string>) {
 }
 
 export function useSystemDF() {
-  return useSWR<Dated<{ Images: ImageInfo[] }>>(
-    '/api/engine/system/df?type=image',
-    fetcher
-  )
+  return useSWRImmutable<
+    Dated<{ Images: ImageInfo[]; Volumes: VolumeInspectInfo[] }>
+  >('/api/engine/system/df?type=image', fetcher)
+}
+
+export function useSwarmEditor() {
+  // form
+  const server = useServerState()
+  const ref = useRef<NodeJS.Timeout>()
+
+  // name
+  const flush = useEvent(async (evt?: FormEvent<HTMLFormElement>) => {
+    console.log('flush', updates)
+    evt && evt.preventDefault()
+    if (!server.data || !server.data.swarm) return
+    if (!updates) return
+
+    try {
+      const ok = await engine.post(
+        '/swarm/update',
+        {
+          ...server.data.swarm.Spec,
+          Labels: { ...server.data.swarm.Spec.Labels, ...updates },
+        },
+        { params: { version: server.data?.swarm.Version?.Index } }
+      )
+      await server.mutate()
+      setUpdates(undefined)
+    } catch (error) {}
+  })
+
+  // links
+  const [updates, setUpdates] = useState<Record<string, string>>()
+
+  const label = useCallback((updates: Partial<Record<SwarmLabel, string>>) => {
+    setUpdates((prev) => ({ ...prev, ...updates }))
+    clearTimeout(ref.current)
+    ref.current = setTimeout(() => flush(), 500)
+  }, [])
+
+  return {
+    labels: { ...server.data?.swarm?.Spec.Labels, ...updates },
+    updates,
+    label,
+    flush,
+  }
 }
