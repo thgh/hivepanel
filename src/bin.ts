@@ -4,17 +4,26 @@ import { exec } from 'node:child_process'
 import type { Swarm } from 'dockerode'
 import prompts from 'prompts'
 
-import { createServer } from './index'
+import { banner, createServer } from './index'
 import { engine } from './lib/docker'
+import { resetAuth, swarm } from './lib/state'
 
-main()
+banner()
+const command = process.argv[2]
+
+if (command === 'password') reset()
+else if (command === 'user') user()
+else main()
 
 // CLI
 async function main() {
   // Assume everything is ready to go
   const ok = await engine.get<Swarm>('/swarm', { validateStatus: () => true })
   if (ok.status < 222) {
-    console.log('Docker Swarm is ready')
+    console.log(
+      'Docker Swarm is ready',
+      ok.data?.Spec?.Labels?.['hive.panel.name']
+    )
     createServer(23088)
     // Open browser if possible
     exec('open http://localhost:23088')
@@ -73,4 +82,45 @@ async function main() {
     message: 'Would you like to install a Docker?',
   })
   console.log('You want to install docker:', response)
+}
+
+async function user() {
+  await swarm.load()
+  let email = process.argv[3]
+  if (!email) {
+    const response = await prompts({
+      type: 'text',
+      name: 'email',
+      message: ' Enter new email address',
+      hint: 'Leave blank to use "admin"',
+    })
+    email = response?.email || 'admin'
+  }
+
+  const ok = await resetAuth(email)
+  if (!ok) return console.log('Failed to reset password')
+  const { password } = ok
+  console.log('\n      Email:  ' + email + '\n   Password:  ' + password + '\n')
+}
+
+async function reset() {
+  await swarm.load()
+  const users = [...swarm.users.entries()]
+  let email = 'admin'
+  if (users.length === 1) email = users[0][0]
+  else if (users.length > 1) {
+    const response = await prompts({
+      type: 'select',
+      name: 'email',
+      message: 'Select user to reset password',
+      choices: users.map(([email]) => ({ title: email, value: email })),
+    })
+    if (!response.email) return console.log('No user selected')
+    email = response.email
+  }
+
+  const ok = await resetAuth(email)
+  if (!ok) return console.log('Failed to reset password')
+  const { password } = ok
+  console.log('\n      Email:  ' + email + '\n   Password:  ' + password + '\n')
 }

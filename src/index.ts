@@ -9,7 +9,15 @@ import { setupWebsocket } from './lib/docker'
 import { buildDate, version } from './lib/env'
 import { checkAuth, state } from './lib/state'
 
+let hasPrintedBanner = false
+export function banner() {
+  if (hasPrintedBanner) return
+  console.log(`📦 Hivepanel ${version} ${buildDate}`)
+  hasPrintedBanner = true
+}
+
 export function createServer(port: number) {
+  banner()
   const app = express()
   const cwd = process.cwd()
 
@@ -30,9 +38,9 @@ export function createServer(port: number) {
         console.log('credentials.err', err)
       })
       console.log(
-        `📦 Hivepanel ${version} ${buildDate}\nServer is listening on ${
-          state.origin
-        }${credentials ? `/#password=${credentials.password}` : ''}`
+        `Server is listening on ${state.origin}${
+          credentials ? `/#password=${credentials.password}` : ''
+        }`
       )
       resolve(server)
     })

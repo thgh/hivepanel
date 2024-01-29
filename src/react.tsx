@@ -1,7 +1,7 @@
 import './globals.css'
 
 import axios from 'axios'
-import React, { ReactNode, useEffect } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { createBrowserRouter } from 'react-router-dom'
@@ -117,10 +117,11 @@ function Onboarding() {
 
 function WithoutDockerSwarm() {
   const { mutate: mutateState } = useServerState()
-  const { data, error, mutate } = useSWR<OnboardingState>('/api/onboarding', {
+  const { data, mutate } = useSWR<OnboardingState>('/api/onboarding', {
     fetcher,
     refreshInterval: 3000,
   })
+  const [error, setError] = useState<Error>()
 
   if (!data) return null
 
@@ -192,16 +193,26 @@ function WithoutDockerSwarm() {
             evt.preventDefault()
             const data = new FormData(evt.target as HTMLFormElement)
             const json = Object.fromEntries(data.entries())
-            const ok = await axios.post('/api/auth/login', json)
-            if (ok.status === 200) mutateState()
-            else if (ok.data?.message) alert(ok.data.message)
+            try {
+              const ok = await axios.post('/api/auth/login', json)
+              if (ok.status === 200) mutateState()
+              else if (ok.data?.message) alert(ok.data.message)
+            } catch (error: any) {
+              setError(error)
+            }
           }}
         >
           <Card className="w-80">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Sign in</CardTitle>
               <CardDescription>
-                Authenticate to access the control panel.
+                {error ? (
+                  <span className="text-red-700">
+                    {(error as any).response?.data.message || error.message}
+                  </span>
+                ) : (
+                  '  Authenticate to access the control panel.'
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">

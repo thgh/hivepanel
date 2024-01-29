@@ -44,6 +44,7 @@ export async function authMiddleware(
   }
 
   if (req.method === 'POST' && req.url === '/auth/login') {
+    if (!req.body.email) req.body.email = 'admin'
     const { email, password } = req.body
     await checkAuth()
     const data = swarm.users.get(email)

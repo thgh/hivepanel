@@ -12,13 +12,14 @@ export const state: ServerState = {}
 
 /** Manage labels */
 export const swarm = {
-  get users() {
+  get users(): Map<string, string> {
     const users = Object.entries(
       (state.swarm?.Spec ? state.swarm.Spec.Labels! : state.swarmLabelBuffer) ||
         {}
     )
       .filter(([key]) => key.startsWith('hive.panel.user.'))
       .map(([key, value]) => [key.replace('hive.panel.user.', ''), value])
+      .filter(([key, value]) => key && value)
     // if (!users.length)
     //   console.log('no users', state.swarm?.Spec, state.swarmLabelBuffer)
     // @ts-expect-error
@@ -51,7 +52,7 @@ export const swarm = {
       { validateStatus: () => true }
     )
     if (network.status !== 409 && network.status !== 201) {
-      console.log('Failed to create network', network.status, network.data)
+      console.log('🐝 Failed to create network', network.status, network.data)
     }
     return { swarm }
   },
@@ -76,13 +77,13 @@ export const swarm = {
           { params: { version: state.swarm.Version?.Index } }
         )
         .then((ok) => {
-          console.log('updated swarm', ok.status, key)
+          // console.log('🐝 updated swarm', ok.status, key)
         })
         .catch((error) => {
           if (error.response?.data?.message === 'update out of sequence') {
-            console.log('out of sequence, data lost')
+            console.log('🐝 out of sequence, data lost')
           }
-          console.log('update swarm', error.response?.data || error.message)
+          console.log('🐝 update swarm', error.response?.data || error.message)
         })
     } else {
       if (!state.swarmLabelBuffer) state.swarmLabelBuffer = {}
@@ -108,10 +109,10 @@ export const swarm = {
           { params: { version: state.swarm.Version?.Index } }
         )
         .then((ok) => {
-          console.log('updated swarm', ok.status, labels)
+          // console.log('🐝 updated swarm', ok.status, labels)
         })
         .catch((error) => {
-          console.log('update swarm', error.response?.data || error.message)
+          console.log('🐝 update swarm', error.response?.data || error.message)
         })
     } else {
       if (!state.swarmLabelBuffer) state.swarmLabelBuffer = {}
@@ -129,7 +130,7 @@ export const swarm = {
       })
       state.swarmAt = Date.now()
       state.swarm = ok.status < 222 ? ok.data : undefined
-      console.log('🐝 Loaded swarm', state.swarm?.Version)
+      // console.log('🐝 Loaded swarm', state.swarm?.Version)
       return state.swarm
     } catch (error) {}
   },
@@ -149,6 +150,21 @@ export async function checkAuth() {
   }
 
   return { email: 'admin', password }
+}
+
+/** Create new admin password */
+export async function resetAuth(email = 'admin') {
+  const ok = await isSwarmManager()
+  if (!ok)
+    return console.log('🐝 Cannot determine if this node is a swarm manager')
+
+  // TODO: bcrypt
+  const password = str62(20)
+  state.fallbackPassword = password
+  swarm.set(`hive.panel.user.${email}`, password)
+  console.log('🔐 Generated password for ' + email)
+
+  return { email, password }
 }
 
 export async function isDockerRunning({ revalidate = 10 } = {}) {
@@ -185,7 +201,7 @@ export async function diskStats({ revalidate = 10 } = {}) {
     (resolve, reject) => {
       exec(`df -k / | awk 'NR==2{print $2,$4}'`, (err, stdout, stderr) => {
         if (err) {
-          console.error('diskStats:', stderr)
+          console.error('🐝 diskStats:', stderr)
           reject(err)
         } else {
           const [totaldisk, freedisk] = stdout
