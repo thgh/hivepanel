@@ -13,7 +13,7 @@ import { EnableTraefik } from '@/components/webserver/traefik'
 import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
-import { formatBytesRatio } from '@/lib/formatBytes'
+import { formatBytesRatio, formatBytesRatio2 } from '@/lib/formatBytes'
 import {
   panels,
   panelSync,
@@ -114,7 +114,7 @@ export default function ServiceList() {
   return (
     <>
       <div className="pt-6 px-6 text-sm opacity-60 left-0 -mb-2 flex flex-wrap gap-x-12 gap-y-2">
-        <span>RAM free {formatBytesRatio(data?.freemem, data?.totalmem)}</span>
+        <span>RAM free {formatBytesRatio2(data?.freemem, data?.totalmem)}</span>
         <span>
           Load{' '}
           {data?.loadavg

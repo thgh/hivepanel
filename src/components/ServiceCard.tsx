@@ -4,7 +4,7 @@ import useSWR from 'swr'
 import { Dated, humanDateSecond } from '@/lib/date'
 import { ContainerStats, Service, Task, TaskInspect } from '@/lib/docker'
 import { engine, updateService } from '@/lib/docker-client'
-import { formatBytes } from '@/lib/formatBytes'
+import { formatBytes2, thousand2 } from '@/lib/formatBytes'
 import { fetcher } from '@/lib/swr'
 
 import { Button } from './ui/button'
@@ -150,7 +150,7 @@ function TaskCard({
           onClick={async () => {
             const limit = prompt(
               'Set memory limit',
-              '' + stats.memory_stats.limit / 1024 / 1024
+              '' + stats.memory_stats.limit / thousand2 / thousand2
             )
             await updateService(service, (spec) => ({
               ...spec,
@@ -161,7 +161,7 @@ function TaskCard({
                   Limits: {
                     ...spec.TaskTemplate?.Resources?.Limits,
                     MemoryBytes: limit
-                      ? 1024 * 1024 * parseInt(limit)
+                      ? thousand2 * thousand2 * parseInt(limit)
                       : undefined,
                   },
                 },
@@ -180,12 +180,12 @@ function TaskCard({
               ).toPrecision(2)}
               %{' '}
               <span className="opacity-50">
-                of {formatBytes(stats.memory_stats.limit)} RAM
+                of {formatBytes2(stats.memory_stats.limit)} RAM
               </span>
             </>
           ) : stats.memory_stats?.usage ? (
             <>
-              {formatBytes(
+              {formatBytes2(
                 stats.memory_stats?.usage -
                   (stats.memory_stats?.stats?.cache || 0)
               )}

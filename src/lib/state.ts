@@ -4,6 +4,7 @@ import type { NetworkCreateOptions, Swarm } from 'dockerode'
 import { SWRResponse } from 'swr'
 
 import { engine } from './docker'
+import { thousand2 } from './formatBytes'
 import { str62 } from './random'
 import type { ServerState, SwarmLabel } from './types'
 
@@ -190,7 +191,7 @@ export async function diskStats({ revalidate = 10 } = {}) {
           const [totaldisk, freedisk] = stdout
             .split(' ')
             .map(Number)
-            .map((n) => n * 1024)
+            .map((n) => n * thousand2)
           resolve({ totaldisk, freedisk })
         }
       })

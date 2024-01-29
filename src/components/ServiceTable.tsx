@@ -9,7 +9,7 @@ import { Dated, humanDateMinute } from '@/lib/date'
 import type { Service, ServiceSpec, Task, TaskAndStats } from '@/lib/docker'
 import { updateService } from '@/lib/docker-client'
 import { parseImageName } from '@/lib/docker-util'
-import { formatBytes } from '@/lib/formatBytes'
+import { formatBytes2, thousand2 } from '@/lib/formatBytes'
 import { splitHostnames } from '@/lib/labels'
 import { fetcher, useServerState } from '@/lib/swr'
 import { SwarmLabel } from '@/lib/types'
@@ -331,7 +331,7 @@ export const columns: ColumnDef<Service>[] = [
               evt.stopPropagation()
               const limit = prompt(
                 'Set memory limit in MB',
-                '' + (max || 0) / 1024 / 1024
+                '' + (max || 0) / thousand2 / thousand2
               )
               if (typeof limit !== 'string') return
               await updateService(row.original, (spec) => ({
@@ -343,7 +343,7 @@ export const columns: ColumnDef<Service>[] = [
                     Limits: {
                       ...spec.TaskTemplate?.Resources?.Limits,
                       MemoryBytes: limit
-                        ? 1024 * 1024 * parseInt(limit)
+                        ? thousand2 * thousand2 * parseInt(limit)
                         : undefined,
                     },
                   },
@@ -352,11 +352,11 @@ export const columns: ColumnDef<Service>[] = [
               refreshServices()
             }}
           >
-            {memory ? formatBytes(memory) : undefined}
+            {memory ? formatBytes2(memory) : undefined}
             <span className="text-muted-foreground">
               {memory && max ? <>&nbsp;/ </> : ''}
               {!memory && max ? 'Max ' : ''}
-              {max ? formatBytes(max) : ''}
+              {max ? formatBytes2(max) : ''}
               {!memory && !max ? 'Set limit...' : ''}
             </span>
           </Button>

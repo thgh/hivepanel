@@ -22,10 +22,12 @@ export default function SettingsPrune() {
   const images =
     df.data?.data?.Images?.sort((a, b) => a.Created - b.Created) || []
 
+  const used =
+    df.data?.data?.Images.filter((i) => i.Containers > 0).map((i) => i.Id) || []
   const initial =
     df.data?.data?.Images.filter((i) => i.Containers === 0).map((i) => i.Id) ||
     []
-  const [remove, setRemove] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>([])
 
   const [pruned, setPruned] = useState([] as string[])
   return (
@@ -43,9 +45,9 @@ export default function SettingsPrune() {
       <div className="my-6 flex gap-4">
         <Button
           variant="destructive"
-          disabled={!(remove || initial).length}
+          disabled={!(selected || initial).length}
           onClick={async () => {
-            for (const Id of remove || initial) {
+            for (const Id of selected || initial) {
               try {
                 const ok = await engine.delete(`/images/${Id}`, {
                   validateStatus: (status) => status < 300 || status === 409,
@@ -59,28 +61,29 @@ export default function SettingsPrune() {
                     await engine.delete(`/images/${Id}?force=true`)
                   }
                 }
-                setRemove((prev) => prev.filter((id) => id !== Id))
+                setSelected((prev) => prev.filter((id) => id !== Id))
                 setPruned((prev) => [...prev, Id])
               } catch (error) {
                 console.log('Prune image', Id, error)
               }
             }
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            df.mutate()
+            await df.mutate()
+            toast('Pruned & disk usage updated')
           }}
         >
-          {remove ? 'Cleanup selected' : 'Cleanup dangling images'}
+          {selected ? 'Cleanup selected' : 'Cleanup dangling images'}
         </Button>
-        <Button onClick={() => setRemove(initial)} variant="secondary">
+        <Button onClick={() => setSelected(initial)} variant="secondary">
           Select all
         </Button>
-        <Button onClick={() => setRemove([])} variant="secondary">
+        <Button onClick={() => setSelected([])} variant="secondary">
           Deselect all
         </Button>
       </div>
 
       {images.length ? (
-        <table>
+        <table className="text-sm">
           <tbody>
             <tr>
               <th className="text-left pr-6 font-medium"></th>
@@ -93,7 +96,16 @@ export default function SettingsPrune() {
               <th className="text-left pr-6 font-medium">Created</th>
             </tr>
             {images.map((image) => (
-              <tr key={'img_' + image.Id}>
+              <tr
+                key={'img_' + image.Id}
+                className={
+                  selected.includes(image.Id)
+                    ? 'text-red-700'
+                    : used.includes(image.Id)
+                    ? 'opacity-60'
+                    : ''
+                }
+              >
                 <td className="pr-2">
                   {pruned.includes(image.Id) ? (
                     '❎'
@@ -101,47 +113,56 @@ export default function SettingsPrune() {
                     <input
                       type="checkbox"
                       id={'img_' + image.Id}
-                      checked={(remove || initial).includes(image.Id)}
+                      checked={(selected || initial).includes(image.Id)}
                       onChange={(evt) => {
                         if (evt.target.checked) {
-                          setRemove((prev) => [...(prev || initial), image.Id])
+                          setSelected((prev) => [
+                            ...(prev || initial),
+                            image.Id,
+                          ])
                         } else {
-                          setRemove(
-                            (remove || initial).filter((id) => id !== image.Id)
+                          setSelected(
+                            (selected || initial).filter(
+                              (id) => id !== image.Id
+                            )
                           )
                         }
                       }}
                     />
                   )}
                 </td>
-                <td className="pr-6 whitespace-pre-line">
-                  {image.RepoTags?.join('\n') || '?'}
+                <td className="whitespace-pre-line">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
+                    {image.RepoTags?.join('\n') || '?'}
+                  </label>
                 </td>
-                <td className="pr-6">
-                  <label htmlFor={'img_' + image.Id}>
+                <td className="">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
                     {formatBytes(image.Size - image.SharedSize)}
                   </label>
                 </td>
-                <td className="pr-6 opacity-40">
-                  <label htmlFor={'img_' + image.Id}>
+                <td className="opacity-60">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
                     {formatBytes(image.Size)}
                   </label>
                 </td>
-                <td className="pr-6 opacity-40">
-                  <label htmlFor={'img_' + image.Id}>
+                <td className="opacity-60">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
                     {formatBytes(image.SharedSize)}
                   </label>
                 </td>
-                <td className="pr-6 opacity-40">
-                  <label htmlFor={'img_' + image.Id}>
+                <td className="opacity-60">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
                     {formatBytes(image.VirtualSize)}
                   </label>
                 </td>
-                <td className="pr-6">
-                  <label htmlFor={'img_' + image.Id}>{image.Containers}</label>
+                <td className="">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
+                    {image.Containers}
+                  </label>
                 </td>
-                <td className="pr-6 text-right">
-                  <label htmlFor={'img_' + image.Id}>
+                <td className="text-right">
+                  <label className="block pr-6" htmlFor={'img_' + image.Id}>
                     {humanDateSecond(image.Created * 1000)}
                   </label>
                 </td>
