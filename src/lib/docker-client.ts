@@ -7,7 +7,7 @@ export const engine = axios.create({
 })
 
 engine.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error) => {
     if (error.response) {
       if (error.response?.data?.message) {

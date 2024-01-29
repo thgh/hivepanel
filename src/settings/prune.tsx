@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { humanDateSecond } from '@/lib/date'
 import { Service } from '@/lib/docker'
 import { updateService } from '@/lib/docker-client'
-import { formatBytes } from '@/lib/formatBytes'
+import { formatBytes, formatBytesRatio } from '@/lib/formatBytes'
 import { useServerState, useServices, useSystemDF } from '@/lib/swr'
 import { ServerState } from '@/lib/types'
 
@@ -17,16 +17,15 @@ type ConfigBackup = {
 
 export default function SettingsPrune() {
   // "container" "image" "volume" "build-cache"
+  const { data } = useServerState()
   const df = useSystemDF()
   const images =
-    df.data?.data?.Images?.filter((i) => i.Containers === 0).sort(
-      (a, b) => a.Created - b.Created
-    ) || []
+    df.data?.data?.Images?.sort((a, b) => a.Created - b.Created) || []
 
   const initial =
     df.data?.data?.Images.filter((i) => i.Containers === 0).map((i) => i.Id) ||
     []
-  const [remove, setRemove] = useState<string[]>()
+  const [remove, setRemove] = useState<string[]>([])
 
   const [pruned, setPruned] = useState([] as string[])
   return (
@@ -36,17 +35,47 @@ export default function SettingsPrune() {
         <p className="text-muted-foreground">Cleanup disk space</p>
       </div>
 
-      <div className="my-6">
+      <span>
+        Disk free{' '}
+        {data?.freedisk ? formatBytesRatio(data.freedisk, data?.totaldisk) : ''}
+      </span>
+
+      <div className="my-6 flex gap-4">
         <Button
+          variant="destructive"
           disabled={!(remove || initial).length}
           onClick={async () => {
             for (const Id of remove || initial) {
-              await engine.delete(`/images/${Id}`)
-              setPruned((prev) => [...prev, Id])
+              try {
+                const ok = await engine.delete(`/images/${Id}`, {
+                  validateStatus: (status) => status < 300 || status === 409,
+                })
+                console.log(ok)
+                if (ok.status === 409) {
+                  const force = confirm('Force remove?\n' + ok.data.message)
+                  toast('Force remove ' + (force ? 'enabled' : 'disabled'))
+                  if (!force) throw new Error('Not forced')
+                  else {
+                    await engine.delete(`/images/${Id}?force=true`)
+                  }
+                }
+                setRemove((prev) => prev.filter((id) => id !== Id))
+                setPruned((prev) => [...prev, Id])
+              } catch (error) {
+                console.log('Prune image', Id, error)
+              }
             }
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            df.mutate()
           }}
         >
           {remove ? 'Cleanup selected' : 'Cleanup dangling images'}
+        </Button>
+        <Button onClick={() => setRemove(initial)} variant="secondary">
+          Select all
+        </Button>
+        <Button onClick={() => setRemove([])} variant="secondary">
+          Deselect all
         </Button>
       </div>
 
@@ -56,7 +85,12 @@ export default function SettingsPrune() {
             <tr>
               <th className="text-left pr-6 font-medium"></th>
               <th className="text-left pr-6 font-medium">Image</th>
+              <th className="text-left pr-6 font-medium">Self</th>
               <th className="text-left pr-6 font-medium">Size</th>
+              <th className="text-left pr-6 font-medium">Shared</th>
+              <th className="text-left pr-6 font-medium">Virtual</th>
+              <th className="text-left pr-6 font-medium">Use</th>
+              <th className="text-left pr-6 font-medium">Created</th>
             </tr>
             {images.map((image) => (
               <tr key={'img_' + image.Id}>
@@ -80,18 +114,25 @@ export default function SettingsPrune() {
                     />
                   )}
                 </td>
-                <td className="pr-6">{image.RepoTags?.join(', ') || '?'}</td>
+                <td className="pr-6 whitespace-pre-line">
+                  {image.RepoTags?.join('\n') || '?'}
+                </td>
                 <td className="pr-6">
+                  <label htmlFor={'img_' + image.Id}>
+                    {formatBytes(image.Size - image.SharedSize)}
+                  </label>
+                </td>
+                <td className="pr-6 opacity-40">
                   <label htmlFor={'img_' + image.Id}>
                     {formatBytes(image.Size)}
                   </label>
                 </td>
-                <td className="pr-6">
+                <td className="pr-6 opacity-40">
                   <label htmlFor={'img_' + image.Id}>
                     {formatBytes(image.SharedSize)}
                   </label>
                 </td>
-                <td className="pr-6">
+                <td className="pr-6 opacity-40">
                   <label htmlFor={'img_' + image.Id}>
                     {formatBytes(image.VirtualSize)}
                   </label>
@@ -99,7 +140,7 @@ export default function SettingsPrune() {
                 <td className="pr-6">
                   <label htmlFor={'img_' + image.Id}>{image.Containers}</label>
                 </td>
-                <td className="pr-6">
+                <td className="pr-6 text-right">
                   <label htmlFor={'img_' + image.Id}>
                     {humanDateSecond(image.Created * 1000)}
                   </label>
