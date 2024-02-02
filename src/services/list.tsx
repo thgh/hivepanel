@@ -5,7 +5,6 @@ import { EditServiceSheet } from '@/components/EditServiceSheet'
 import { EnableHive } from '@/components/EnableHive'
 import { OneClickAppSelect } from '@/components/OneClickAppSelect'
 import { ServiceTable } from '@/components/ServiceTable'
-import { Button } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
 import { EnableCaddy } from '@/components/webserver/caddy'
 import { OverlayNetworkButton } from '@/components/webserver/OverlayNetwork'
@@ -14,12 +13,6 @@ import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
 import { formatBytesRatio, formatBytesRatio2 } from '@/lib/formatBytes'
-import {
-  panels,
-  panelSync,
-  registerPanel,
-  useIsPanelRegistered,
-} from '@/lib/panels'
 import { useServerState, useServices, useServicesWithMemory } from '@/lib/swr'
 
 export default function ServiceList() {
@@ -95,7 +88,6 @@ export default function ServiceList() {
     swr.mutate()
   }
   const { data, error } = useServerState()
-  const registered = useIsPanelRegistered()
 
   // const tasks = useSWR<Dated<Task[]>>('/api/engine/tasks', fetcher, {
   //   refreshInterval: 3000,
@@ -201,20 +193,6 @@ export default function ServiceList() {
           <EnableCaddy />
           <EnableTraefik />
           <EnableHive />
-          <Button
-            variant={registered ? 'outline' : 'default'}
-            onClick={() => {
-              registerPanel()
-            }}
-          >
-            Register recent
-          </Button>
-          {panelSync.hook()}
-          {panels
-            .hook()
-            ?.data.map((panel) => (
-              <div key={panel.origin}>Panel {panel.origin}</div>
-            ))}
         </div>
         {/* <div className="flex gap-4 flex-col">
           {swr.data?.data.map((service) => (
