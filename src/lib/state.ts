@@ -133,6 +133,7 @@ export const swarm = {
       // console.log('🐝 Loaded swarm', state.swarm?.Version)
       return state.swarm
     } catch (error) {}
+    console.log('🐝 Failed to load swarm')
   },
 }
 
@@ -167,6 +168,7 @@ export async function resetAuth(email = 'admin') {
   return { email, password }
 }
 
+/** TODO: refactor so it can return instantly/fresh/stale, match with http cache headers */
 export async function isDockerRunning({ revalidate = 10 } = {}) {
   if (
     state.isDockerRunningAt &&
@@ -175,12 +177,17 @@ export async function isDockerRunning({ revalidate = 10 } = {}) {
     return state.isDockerRunning
   }
   try {
-    const ok = await engine.get('/containers/json', {
+    const start = Date.now()
+    const ok = await engine.get('/networks', {
       validateStatus: () => true,
-      timeout: 1000,
+      timeout: 10000,
     })
+    const elapsed = Date.now() - start
+    if (elapsed > 1000) console.log('isDockerRunning: slow', elapsed + 'ms')
     state.isDockerRunning = Array.isArray(ok.data)
-  } catch (error) {
+    if (!state.isDockerRunning) console.log('isDockerRunning: json', ok.data)
+  } catch (error: any) {
+    console.log('isDockerRunning: error', error.message, error.response?.data)
     state.isDockerRunning = false
   }
   state.isDockerRunningAt = Date.now()

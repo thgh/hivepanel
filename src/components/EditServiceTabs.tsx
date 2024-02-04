@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { humanDateSecond } from '@/lib/date'
 import { engine, updateService } from '@/lib/docker-client'
 import { getVolumeType, isShortMount } from '@/lib/docker-util'
+import { str62 } from '@/lib/random'
 import { refreshServices } from '@/lib/useRefresh'
 
 import type { Service, ServiceSpec } from '../lib/docker'
@@ -62,7 +63,7 @@ export function EditServiceTabs({
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
       </div>
-      <TabsContent value="edit" className="px-6">
+      <TabsContent value="edit" className="px-6 outline-none">
         {value && (
           <ErrorBoundary>
             <EditServiceForm
@@ -118,6 +119,12 @@ function EditServiceForm({
     ) || []
 
   const hasProxy = /[a-z]/.test(editor.Labels!['hive.hostnames'] || '')
+
+  const hooks = Object.entries(editor.Labels)
+    .filter(
+      ([key, value]) => key.startsWith('hive.key.') && key.length > 9 && value
+    )
+    .map(([key, value]) => ({ key: key.slice(9), value }))
 
   return (
     <form
@@ -359,6 +366,62 @@ function EditServiceForm({
           </Select>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="hook0" className="text-right">
+            Deploy key
+          </Label>
+          <div className="col-span-3 flex gap-2 flex-col">
+            {hooks.length ? (
+              hooks.map((hook, index) => (
+                <Input
+                  key={index}
+                  id={'hook' + index}
+                  value={`1$${value.Spec.Name}$${hook.key}`}
+                  type="password"
+                  autoComplete="off"
+                  data-lpignore
+                  onMouseEnter={(evt) => {
+                    ;(evt.target as HTMLInputElement).type = 'text'
+                  }}
+                  onMouseLeave={(evt) => {
+                    ;(evt.target as HTMLInputElement).type = 'password'
+                  }}
+                  onChange={(evt) => {
+                    let value = evt.target.value
+                    if (value.includes('$')) value = value.split('$').pop()!
+                    label('hive.key.' + hook.key, undefined)
+                    if (value) label('hive.key.' + value, hook.value)
+                  }}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(
+                        `1$${value.Spec.Name}$${hook.key}`
+                      )
+                      toast('Copied to clipboard')
+                    } catch (error) {}
+                  }}
+                />
+              ))
+            ) : (
+              <Input
+                id="hook0"
+                defaultValue=""
+                placeholder="Click to create a deploy key"
+                type="text"
+                onClick={async () => {
+                  try {
+                    const key = str62(20)
+                    label('hive.key.' + key, 'deploy')
+                    await navigator.clipboard.writeText(
+                      `1$${value.Spec.Name}$${key}`
+                    )
+                    toast('Copied to clipboard')
+                  } catch (error) {}
+                }}
+              />
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="username" className="text-right">
             Tint
           </Label>
@@ -383,9 +446,15 @@ function EditServiceForm({
           onChange={(e) => setJSON(e.target.value)}
         />
       </div>
-      <SheetFooter className={sheet ? 'bottom-0 sticky' : 'bottom-4 fixed'}>
+      <SheetFooter
+        className={sheet ? 'bottom-0 sticky py-4' : 'bottom-4 fixed'}
+      >
+        <Button type="submit" disabled={invalid}>
+          Save changes
+        </Button>
         <Button
           type="button"
+          variant="destructive"
           onClick={async () => {
             if (!confirm('Are you sure?')) return
             await engine.delete('/services/' + value.ID)
@@ -396,9 +465,6 @@ function EditServiceForm({
           }}
         >
           Delete
-        </Button>
-        <Button type="submit" disabled={invalid}>
-          Save changes
         </Button>
       </SheetFooter>
     </form>

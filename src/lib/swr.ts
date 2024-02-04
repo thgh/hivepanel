@@ -38,7 +38,8 @@ export function useServicesWithMemory() {
   const tasks = useSWR<Dated<TaskAndStats[]>>('/api/stats', fetcher, {
     refreshInterval: 30000,
   }).data?.data
-  if (!tasks) return services.data?.data
+  const list = Array.isArray(services.data?.data)
+  if (!tasks || !list) return services.data?.data
   return services.data?.data.map((service) => {
     const memory = tasks
       .filter(({ task }) => task.ServiceID === service.ID)

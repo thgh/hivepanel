@@ -6,6 +6,7 @@ import * as diskUsage from './disk-usage'
 import * as engine from './engine'
 import { authMiddleware } from './middleware/auth'
 import deploy from './middleware/deploy'
+import { hookMiddleware } from './middleware/hook'
 import Networks from './middleware/Networks'
 import { onboardingMiddleware } from './middleware/onboarding'
 import { caddyBasicauth } from './middleware/registry-basicauth'
@@ -19,6 +20,7 @@ export const serverRouter = Router()
 
 // Core API routes
 serverRouter.use(cookieParser())
+serverRouter.use('/hook', hookMiddleware)
 serverRouter.use(authMiddleware)
 serverRouter.use('/state', stateMiddleware)
 serverRouter.use('/onboarding', onboardingMiddleware)

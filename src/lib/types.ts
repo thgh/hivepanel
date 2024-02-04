@@ -46,6 +46,8 @@ export type ServiceLabel =
   | 'hive.caddy'
   /** Don't manage this service at all */
   | 'hive.ignore'
+  /** Used to publish from CI/CD */
+  | `hive.key.${string}`
   /** Container port */
   | 'hive.port'
   | 'hive.replicas'
@@ -55,7 +57,7 @@ export type ServiceLabel =
   /** start-first or stop-first */
   | 'hive.update'
   /** Require authentication */
-  | `${'hive.user.'}${string}`
+  | `hive.user.${string}`
 
 export type SwarmLabel =
   | 'hive.panel.hostnames'
@@ -65,7 +67,7 @@ export type SwarmLabel =
   | 'hive.panel.tint'
   | 'hive.panel.name'
   // Metadata about another swarm
-  | `${'hive.link.'}${string}`
+  | `hive.link.${string}`
   // Volume for the caddy web server
   | 'hive.caddy.volume'
   // Service that acts as web server
@@ -75,5 +77,5 @@ export type SwarmLabel =
   // Service that acts as registry
   | 'hive.registry.service'
   /** Require authentication */
-  | `${'hive.panel.user.'}${string}`
-  | `${'hive.session.'}${string}`
+  | `hive.panel.user.${string}`
+  | `hive.session.${string}`
