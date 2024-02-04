@@ -1,5 +1,4 @@
 import { Label } from '@radix-ui/react-dropdown-menu'
-import { hashSync } from 'bcryptjs'
 import { toast } from 'sonner'
 import useSWR, { mutate } from 'swr'
 
@@ -127,7 +126,7 @@ export default function SettingsRegistry() {
                 ...(password
                   ? {
                       'caddy.basicauth': '/v2/*',
-                      'caddy.basicauth.admin': hashSync(password),
+                      'caddy.basicauth.admin': password,
                     }
                   : {}),
               },

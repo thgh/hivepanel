@@ -8,6 +8,7 @@ import { authMiddleware } from './middleware/auth'
 import deploy from './middleware/deploy'
 import Networks from './middleware/Networks'
 import { onboardingMiddleware } from './middleware/onboarding'
+import { caddyBasicauth } from './middleware/registry-basicauth'
 import { stateMiddleware } from './middleware/state'
 import UpdateConfig from './middleware/UpdateConfig'
 import web from './middleware/web'
@@ -30,6 +31,7 @@ serverRouter.use(Networks)
 serverRouter.use(UpdateConfig)
 serverRouter.use(deploy)
 serverRouter.use(web)
+serverRouter.use('/engine/services/:create', caddyBasicauth)
 
 // Docker engine routes
 serverRouter.use('/engine', engine.USE)
