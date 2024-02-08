@@ -2,13 +2,9 @@ import { useEffect, useState } from 'react'
 import { Outlet, useSearchParams } from 'react-router-dom'
 
 import { EditServiceSheet } from '@/components/EditServiceSheet'
-import { EnableHive } from '@/components/EnableHive'
 import { OneClickAppSelect } from '@/components/OneClickAppSelect'
 import { ServiceTable } from '@/components/ServiceTable'
 import { Card, CardHeader } from '@/components/ui/card'
-import { EnableCaddy } from '@/components/webserver/caddy'
-import { OverlayNetworkButton } from '@/components/webserver/OverlayNetwork'
-import { EnableTraefik } from '@/components/webserver/traefik'
 import { humanDateSecond } from '@/lib/date'
 import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
@@ -33,8 +29,8 @@ export default function ServiceList() {
       name === 'ping'
         ? 'alpine'
         : name === 'hivepanel'
-        ? 'thgh/hivepanel'
-        : prompt('Container image', name)
+          ? 'thgh/hivepanel'
+          : prompt('Container image', name)
     if (!Image) return
     await engine.post<any, any, ServiceSpec>('/services/create', {
       Name,
@@ -131,16 +127,7 @@ export default function ServiceList() {
             type="button"
           >
             <Card>
-              <CardHeader className="w-44 font-semibold">nginxdemos</CardHeader>
-            </Card>
-          </button>
-          <button
-            className="group text-left"
-            onClick={() => launch('ping')}
-            type="button"
-          >
-            <Card>
-              <CardHeader className="w-44 font-semibold">Ping test</CardHeader>
+              <CardHeader className="w-44 font-semibold">Demo</CardHeader>
             </Card>
           </button>
           <button
@@ -189,10 +176,10 @@ export default function ServiceList() {
         <ServiceTable data={withMemory || []} />
         <div className="h-12"></div>
         <div className="flex flex-wrap gap-4">
-          <OverlayNetworkButton />
+          {/* <OverlayNetworkButton />
           <EnableCaddy />
           <EnableTraefik />
-          <EnableHive />
+          <EnableHive /> */}
         </div>
         {/* <div className="flex gap-4 flex-col">
           {swr.data?.data.map((service) => (
