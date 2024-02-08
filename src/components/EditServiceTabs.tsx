@@ -43,8 +43,10 @@ export function EditServiceTabs({
 }) {
   const navigate = useNavigate()
   const [search, setSearch] = useSearchParams()
+  const tabsRef = useRef<HTMLDivElement>(null)
   return (
     <Tabs
+      ref={tabsRef}
       className={
         search.get('tab') === 'logs' ? 'flex-col h-screen overflow-auto' : ''
       }
@@ -55,6 +57,14 @@ export function EditServiceTabs({
           prev.set('tab', tab)
           return prev
         })
+      }
+      style={
+        value?.Spec.Labels!['hive.tint']
+          ? {
+              backgroundColor: `hsla(${value?.Spec.Labels!['hive.tint']}, 74%, 25%, 30%)`,
+              // backgroundColor: `hsla(${value?.Spec.Labels!['hive.tint']}, 84%, 5%, 100%)`,
+            }
+          : {}
       }
     >
       <div className="top-0 sticky pl-6 pt-6">
@@ -71,6 +81,14 @@ export function EditServiceTabs({
               value={value}
               onClose={onClose || (() => navigate('/'))}
               sheet={sheet}
+              previewTint={(tint) => {
+                if (tint) {
+                  tabsRef.current?.style.setProperty(
+                    'background-color',
+                    `hsla(${tint}, 74%, 25%, 30%)`
+                  )
+                }
+              }}
             />
           </ErrorBoundary>
         )}
@@ -86,10 +104,12 @@ function EditServiceForm({
   value,
   onClose,
   sheet,
+  previewTint,
 }: {
   value: Service
   onClose?: () => void
   sheet?: boolean
+  previewTint: (tint: number) => void
 }) {
   const [editor, setEditor] = useState(value.Spec)
   const TaskTemplate = editor.TaskTemplate as ContainerTaskSpec
@@ -425,15 +445,58 @@ function EditServiceForm({
           <Label htmlFor="username" className="text-right">
             Tint
           </Label>
-          <Input
-            type="range"
-            id="username"
-            min={0}
-            max={360}
-            value={editor.Labels!['hive.tint']}
-            onChange={(evt) => label('hive.tint', evt.target.value)}
-            className="col-span-3"
-          />
+          <div className="col-span-3 px-2">
+            <div
+              className="relative py-2 flex flex-col"
+              onMouseDown={(event) => {
+                const target = event.currentTarget
+                let tint: number
+                const handleMouseMove = (event: MouseEvent) => {
+                  const rect = target.getBoundingClientRect()
+                  const newTint = Math.round(
+                    ((event.clientX - rect.left) / rect.width) * 360
+                  )
+                  tint = Math.min(Math.max(newTint, 0), 360)
+                  label('hive.tint', '' + tint)
+                  previewTint(tint)
+                }
+
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove)
+                  document.removeEventListener('mouseup', handleMouseUp)
+                }
+
+                const rect = target.getBoundingClientRect()
+                const newTint = Math.round(
+                  ((event.clientX - rect.left) / rect.width) * 360
+                )
+                tint = Math.min(Math.max(newTint, 0), 360)
+                label('hive.tint', '' + tint)
+                previewTint(tint)
+
+                document.addEventListener('mousemove', handleMouseMove)
+                document.addEventListener('mouseup', handleMouseUp)
+              }}
+            >
+              <div
+                className="w-4 h-4 border-white opacity-30 border-4 absolute top-1 rounded-full pointer-events-none"
+                style={{
+                  left: `calc(${(parseInt(editor.Labels!['hive.tint']!) / 360) * 100}% - 8px)`,
+                }}
+              ></div>
+              <div className="flex h-2 rounded-full overflow-hidden pointer-events-none">
+                {Array.from({ length: 360 / 3 }, (_, i) => i * 3).map(
+                  (tint, index) => (
+                    <div
+                      className="flex-1"
+                      key={index}
+                      style={{ backgroundColor: `hsl(${tint}, 74%, 25%)` }} // Convert tint value to HSL color
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div className="flex flex-col w-full gap-1.5 flex-1">
