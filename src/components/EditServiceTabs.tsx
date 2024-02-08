@@ -2,7 +2,7 @@
 
 import type { ContainerTaskSpec } from 'dockerode'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -174,7 +174,11 @@ function EditServiceForm({
       )}
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="image" className="text-right">
+          <Label
+            htmlFor="image"
+            className="h-full items-center justify-end flex"
+            hoverCard={<>Name & tag of the image</>}
+          >
             Docker image
           </Label>
           <Input
@@ -188,7 +192,17 @@ function EditServiceForm({
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="hostnames" className="text-right">
+          <Label
+            htmlFor="hostnames"
+            className="h-full items-center justify-end flex"
+            hoverCard={
+              <>
+                Separate multiple hostnames with newlines or comma. The reverse
+                proxy will use this list of hostnames to serve web requests.
+                HTTPS is automatically enabled.
+              </>
+            }
+          >
             Hostnames
           </Label>
           <Textarea
@@ -212,11 +226,29 @@ function EditServiceForm({
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           {hasProxy ? (
-            <Label htmlFor="port" className="text-right">
+            <Label
+              htmlFor="port"
+              className="h-full items-center justify-end flex"
+              hoverCard={
+                <>The reverse proxy will use this port to send requests to.</>
+              }
+            >
               Container port
             </Label>
           ) : (
-            <Label htmlFor="ports" className="text-right">
+            <Label
+              htmlFor="ports"
+              className="h-full items-center justify-end flex"
+              hoverCard={
+                <>
+                  Copy/paste the ports from a docker-compose file
+                  <br />
+                  Add <code>:host</code> to expose port on the host
+                  <br />
+                  Add <code>:udp</code> to enable UDP
+                </>
+              }
+            >
               Expose ports
             </Label>
           )}
@@ -231,7 +263,19 @@ function EditServiceForm({
                   }
                   placeholder="80"
                 />
-                <Label htmlFor="ports" className="text-right whitespace-nowrap">
+                <Label
+                  htmlFor="ports"
+                  className="text-right whitespace-nowrap"
+                  hoverCard={
+                    <>
+                      Copy/paste the ports from a docker-compose file
+                      <br />
+                      Add <code>:host</code> to expose port on the host
+                      <br />
+                      Add <code>:udp</code> to enable UDP
+                    </>
+                  }
+                >
                   Expose ports
                 </Label>
               </>
@@ -304,7 +348,11 @@ function EditServiceForm({
           </div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="mounts" className="text-right">
+          <Label
+            htmlFor="mounts"
+            className="h-full items-center justify-end flex"
+            hoverCard={<>Copy/paste the volumes from a docker-compose file</>}
+          >
             Mounts
           </Label>
           <Textarea
@@ -350,7 +398,15 @@ function EditServiceForm({
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="env" className="text-right">
+          <Label
+            htmlFor="env"
+            className="h-full items-center justify-end flex"
+            hoverCard={
+              <>
+                Copy/paste the environment variables from a docker-compose file
+              </>
+            }
+          >
             Environment
           </Label>
           <Textarea
@@ -369,26 +425,57 @@ function EditServiceForm({
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="update" className="text-right">
+          <Label
+            htmlFor="update"
+            className="h-full items-center justify-end flex"
+            hoverCard={
+              <>
+                Enable <i>zero downtime</i> deployments by first starting new
+                containers and only then stopping the old ones.
+                <div className="text-orange-700 mt-2">
+                  Some containers don't support this, e.g. databases.
+                </div>
+              </>
+            }
+          >
             Update strategy
           </Label>
           <Select
             onValueChange={(value) => label('hive.update', value)}
             defaultValue={editor.Labels!['hive.update']}
           >
-            <SelectTrigger id="update" className="w-[180px]">
+            <SelectTrigger id="update" className="w-[270px]">
               <SelectValue placeholder="Stop then start" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="stop-first">Stop then start</SelectItem>
-              <SelectItem value="start-first">Zero-downtime</SelectItem>
+              <SelectItem value="start-first">
+                Start then stop (zero downtime)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="hook0" className="text-right">
+          <Label
+            htmlFor="hook0"
+            className="h-full items-center justify-end flex"
+            hoverCard={
+              <div className="flex gap-2 flex-col">
+                Pass this key in the Authorization header in CI/CD to pull the
+                latest image and restart the service.
+                <div>Example:</div>
+                {hooks[0] && (
+                  <pre className="whitespace-pre-line text-[9px] leading-none">{` curl -H 'Authorization: Bearer 1$${value.Spec.Name}$${hooks[0].key}' ${location.origin}/api/hook`}</pre>
+                )}
+                <Link to="/docs" className="text-blue-600 underline">
+                  For more options, see docs
+                </Link>
+              </div>
+            }
+          >
             Deploy key
           </Label>
+
           <div className="col-span-3 flex gap-2 flex-col">
             {hooks.length ? (
               hooks.map((hook, index) => (
@@ -442,7 +529,11 @@ function EditServiceForm({
           </div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="username" className="text-right">
+          <Label
+            htmlFor="username"
+            className="h-full items-center justify-end flex"
+            hoverCard={<>Color in the overview table</>}
+          >
             Tint
           </Label>
           <div className="col-span-3 px-2">
@@ -509,8 +600,11 @@ function EditServiceForm({
           onChange={(e) => setJSON(e.target.value)}
         />
       </div>
+      {sheet ? null : <div className="h-24"></div>}
       <SheetFooter
-        className={sheet ? 'bottom-0 sticky py-4' : 'bottom-4 fixed'}
+        className={
+          sheet ? 'bottom-0 sticky py-4' : 'bottom-0 fixed py-4 w-full'
+        }
       >
         <Button type="submit" disabled={invalid}>
           Save changes
