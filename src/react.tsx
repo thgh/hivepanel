@@ -23,6 +23,7 @@ import { Label } from './components/ui/label'
 import { fetcher, useServerState } from './lib/swr'
 import { ThemeProvider } from './lib/theme'
 import { OnboardingState } from './lib/types'
+import { OneClickApp } from './pages/OneClickApp'
 import ServiceDetail from './services/detail'
 import ServiceList from './services/list'
 import SettingsAuthentication from './settings/authentication'
@@ -62,6 +63,14 @@ export const router = createBrowserRouter([
       </Layout>
     ),
     errorElement: <div>Not found!</div>,
+  },
+  {
+    path: '/one-click-apps/:app',
+    element: (
+      <Layout>
+        <OneClickApp />
+      </Layout>
+    ),
   },
   {
     path: '/settings',

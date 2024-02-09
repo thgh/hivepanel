@@ -24,11 +24,15 @@ export const handleService = (
   handler: (service: ServiceSpec) => void | Promise<void>
 ) => {
   return async (request: Request, response: Response, next: () => void) => {
-    if (isServiceSpec(request)) {
-      const spec: ServiceSpec = request.body
-      await handler(spec)
+    try {
+      if (isServiceSpec(request)) {
+        const spec: ServiceSpec = request.body
+        await handler(spec)
+      }
+      next()
+    } catch (error: any) {
+      response.status(500).json({ error: error.message })
     }
-    next()
   }
 }
 

@@ -1,3 +1,4 @@
+import axios from 'axios'
 import cookieParser from 'cookie-parser'
 import { Router } from 'express'
 
@@ -27,6 +28,14 @@ serverRouter.use('/onboarding', onboardingMiddleware)
 serverRouter.get('/config', config.GET)
 serverRouter.get('/registry', registry.GET)
 serverRouter.get('/disk-usage', diskUsage.GET)
+serverRouter.get('/one-click-apps-logos/:name', async (req, res) => {
+  const url = `https://github.com/caprover/one-click-apps/blob/master/public/v4/logos/${req.params.name}?raw=true`
+  const ok = await axios.get(url, { responseType: 'stream' })
+  res.writeHead(200, {
+    'cache-control': 'public, max-age=31536000, immutable',
+  })
+  ok.data.pipe(res)
+})
 
 // Service spec middleware
 serverRouter.use(Networks)

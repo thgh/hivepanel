@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import express from 'express'
+// @ts-expect-error
 import { createServer } from 'vite'
 
 import { serverRouter } from './api'
@@ -21,11 +22,13 @@ app.use('/api', serverRouter)
 
 if (global.closeSignal) {
   // const start = performance.now()
+  // @ts-expect-error
   await global.closeSignal
   // console.log(counter, 'Waited for close', performance.now() - start)
 }
 
 // First start
+// @ts-expect-error
 global.viteInstance ||= await createServer({ server: { middlewareMode: true } })
 app.use(global.viteInstance.middlewares)
 const server = app.listen(devPort, async () => {
@@ -46,9 +49,12 @@ global.closeSignal = new Promise((resolve) =>
 setupWebsocket(server)
 
 // Reload on file change
+// @ts-expect-error
 if (import.meta.hot) {
+  // @ts-expect-error
   import.meta.hot.dispose(() => {
     server.close()
   })
+  // @ts-expect-error
   import.meta.hot.accept(() => {})
 }

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useSearchParams } from 'react-router-dom'
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { EditServiceSheet } from '@/components/EditServiceSheet'
-import { OneClickAppSelect } from '@/components/OneClickAppSelect'
 import { ServiceTable } from '@/components/ServiceTable'
 import { Card, CardHeader } from '@/components/ui/card'
 import { humanDateSecond } from '@/lib/date'
@@ -10,8 +9,10 @@ import type { ServiceSpec } from '@/lib/docker'
 import { engine } from '@/lib/docker-client'
 import { formatBytesRatio, formatBytesRatio2 } from '@/lib/formatBytes'
 import { useServerState, useServices, useServicesWithMemory } from '@/lib/swr'
+import { OneClickAppSelect } from '@/pages/OneClickApp'
 
 export default function ServiceList() {
+  const navigate = useNavigate()
   const [live, setLive] = useState(0)
   const swr = useServices()
   const [search, setSearch] = useSearchParams()
@@ -148,11 +149,7 @@ export default function ServiceList() {
               <CardHeader className="w-44 font-semibold">Hivepanel</CardHeader>
             </Card>
           </button>
-          <OneClickAppSelect
-            onSelect={() => {
-              alert('TODO: add support for one-click-apps?')
-            }}
-          >
+          <OneClickAppSelect onSelect={(x) => navigate('/one-click-apps/' + x)}>
             <button className="group text-left" role="combobox">
               <Card>
                 <CardHeader className="w-44 font-semibold">

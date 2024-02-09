@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { humanDateSecond } from '@/lib/date'
 import { engine, updateService } from '@/lib/docker-client'
-import { getVolumeType, isShortMount } from '@/lib/docker-util'
+import { getVolumeType, isShortMount, parsePort } from '@/lib/docker-util'
 import { str62 } from '@/lib/random'
 import { refreshServices } from '@/lib/useRefresh'
 
@@ -306,39 +306,7 @@ function EditServiceForm({
                 const ports = evt.target.value.split('\n')
                 mutate((spec) => {
                   if (!spec.EndpointSpec) spec.EndpointSpec = {}
-                  spec.EndpointSpec!.Ports = ports.map((p) => {
-                    let PublishMode = 'ingress' as 'host',
-                      Protocol = 'tcp' as any,
-                      PublishedPort,
-                      TargetPort
-                    p = p.trimStart()
-                    if (p.startsWith('- ')) p = p.slice(2)
-                    let parts = p.split(':')
-                    if (parts.includes('host')) PublishMode = 'host'
-                    if (parts.includes('udp')) Protocol = 'udp'
-                    if (parts.includes('sctp')) Protocol = 'sctp'
-                    parts = parts.filter(
-                      (p) => !['host', 'udp', 'sctp'].includes(p)
-                    )
-                    // regex to test if string is only numbers
-                    if (parts[0] && /\d/.test(parts[0])) {
-                      PublishedPort = parseInt(parts[0])
-                      parts.shift()
-                    }
-                    if (parts[0] && /\d/.test(parts[0])) {
-                      TargetPort = parseInt(parts[0])
-                      parts.shift()
-                    }
-                    const Name = parts.length ? parts.join(':') : undefined
-
-                    return {
-                      PublishedPort,
-                      TargetPort,
-                      PublishMode,
-                      Protocol,
-                      Name,
-                    }
-                  })
+                  spec.EndpointSpec!.Ports = ports.map(parsePort)
                   return spec
                 })
               }}
