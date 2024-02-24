@@ -20,7 +20,8 @@ export function createServer(port: number) {
   banner()
   const app = express()
   const cwd = process.cwd()
-
+  app.set('trust proxy', true)
+  app.set('x-powered-by', false)
   app.use(express.static(resolve(cwd, 'dist')))
   app.use(express.urlencoded({ extended: false }))
   app.use(express.json())

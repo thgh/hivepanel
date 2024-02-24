@@ -56,7 +56,7 @@ export async function authMiddleware(
         httpOnly: true,
         path: '/',
         sameSite: 'strict',
-        secure: true,
+        secure: req.protocol === 'https',
       })
       return res.json({ message: 'Logged in', sessionId, email })
     } else {

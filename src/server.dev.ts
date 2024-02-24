@@ -11,7 +11,8 @@ import { checkAuth, state } from './lib/state'
 
 enableDNS()
 const app = express()
-
+app.set('trust proxy', true)
+app.set('x-powered-by', false)
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
