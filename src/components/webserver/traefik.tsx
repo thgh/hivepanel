@@ -64,7 +64,6 @@ export function EnableTraefik() {
             // '--docker.watch',
           ],
         },
-        Networks: [{ Target: 'hivenet' }],
       },
       Labels: {
         'traefik.enable': 'true',

@@ -4,13 +4,16 @@ import type { Swarm } from 'dockerode'
 import type { Request, Response } from 'express'
 
 import { engine } from '@/lib/docker'
-import { isDockerRunning, state, swarm } from '@/lib/state'
+import {
+  checkIsDockerInstalled,
+  isDockerRunning,
+  state,
+  swarm,
+} from '@/lib/state'
 
 export async function onboardingMiddleware(req: Request, res: Response) {
   // check if docker command is installed on the system using `which`
-  const isDockerInstalled = await new Promise((resolve) =>
-    exec('which docker', (err) => resolve(!err))
-  )
+  const isDockerInstalled = await checkIsDockerInstalled()
 
   const isDockerRunning2 = await isDockerRunning()
 

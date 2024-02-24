@@ -185,6 +185,14 @@ export async function isDockerRunning({ revalidate = 10 } = {}) {
     const elapsed = Date.now() - start
     if (elapsed > 1000) console.log('isDockerRunning: slow', elapsed + 'ms')
     state.isDockerRunning = Array.isArray(ok.data)
+    if (state.isDockerRunning) {
+      state.caproverNetwork = ok.data.find(
+        (n: any) =>
+          n.Name === 'captain-overlay-network' &&
+          n.Driver === 'overlay' &&
+          n.Scope === 'swarm'
+      )
+    }
     if (!state.isDockerRunning) console.log('isDockerRunning: json', ok.data)
   } catch (error: any) {
     console.log('isDockerRunning: error', error.message, error.response?.data)
@@ -192,6 +200,11 @@ export async function isDockerRunning({ revalidate = 10 } = {}) {
   }
   state.isDockerRunningAt = Date.now()
   return state.isDockerRunning
+}
+
+/** TODO: refactor so it can return instantly/fresh/stale, match with http cache headers */
+export async function checkIsDockerInstalled() {
+  return new Promise((resolve) => exec('which docker', (err) => resolve(!err)))
 }
 
 export async function isSwarmManager({ revalidate = 10 } = {}) {

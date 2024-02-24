@@ -9,6 +9,7 @@ export type SwarmLink = {
 }
 
 export type ServerState = {
+  caproverNetwork?: boolean
   isDockerRunning?: boolean
   isDockerRunningAt?: number
   // isSwarmManager?: boolean
@@ -60,6 +61,7 @@ export type ServiceLabel =
   | `hive.user.${string}`
 
 export type SwarmLabel =
+  | 'hive.network.default'
   | 'hive.panel.hostnames'
   | 'hive.panel.https'
   | 'hive.panel.port'

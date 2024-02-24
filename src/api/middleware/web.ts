@@ -59,7 +59,6 @@ export default handleService(async (spec) => {
           ],
           Environment: ['CADDY_INGRESS_NETWORKS=hivenet'],
         },
-        Networks: [{ Target: 'hivenet' }],
       },
       EndpointSpec: {
         Ports: [

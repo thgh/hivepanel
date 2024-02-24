@@ -26,7 +26,6 @@ export function EnableCaddy() {
             },
           ],
         },
-        Networks: [{ Target: 'hivenet' }],
       },
       EndpointSpec: {
         Ports: [

@@ -17,7 +17,6 @@ export function EnableHive() {
         ContainerSpec: {
           Image: 'thgh/hivepanel',
         },
-        Networks: [{ Target: 'hivenet' }],
       },
       EndpointSpec: {
         Ports: [

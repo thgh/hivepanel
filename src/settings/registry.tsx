@@ -141,7 +141,6 @@ export default function SettingsRegistry() {
                     },
                   ],
                 },
-                Networks: [{ Target: 'hivenet' }],
               },
               Mode: { Replicated: { Replicas: 1 } },
             } as ServiceSpec)

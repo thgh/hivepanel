@@ -6,7 +6,7 @@ import prompts from 'prompts'
 
 import { banner, createServer } from './index'
 import { engine } from './lib/docker'
-import { resetAuth, swarm } from './lib/state'
+import { checkIsDockerInstalled, resetAuth, swarm } from './lib/state'
 
 banner()
 const command = process.argv[2]
@@ -62,9 +62,7 @@ async function main() {
   }
 
   // Docker is not running, can it be started?
-  const isDockerInstalled = await new Promise((resolve) =>
-    exec('which docker', (err) => resolve(!err))
-  )
+  const isDockerInstalled = await checkIsDockerInstalled()
   if (isDockerInstalled) {
     const response = await prompts({
       type: 'confirm',

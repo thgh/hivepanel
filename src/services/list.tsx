@@ -59,7 +59,6 @@ export default function ServiceList() {
                 ]
               : undefined,
         },
-        Networks: [{ Target: 'hivenet' }],
       },
       EndpointSpec:
         name === 'hivepanel'
