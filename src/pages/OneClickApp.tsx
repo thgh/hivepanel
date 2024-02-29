@@ -170,7 +170,11 @@ export function OneClickApp() {
               ? key + '.' + rootDomain
               : undefined,
             'hive.deploy.image': value.image,
-            'hive.port': value.caproverExtra?.containerHttpPort,
+            'hive.port':
+              typeof value.caproverExtra?.containerHttpPort === 'number' &&
+              value.caproverExtra?.containerHttpPort !== 80
+                ? '' + value.caproverExtra?.containerHttpPort
+                : undefined,
           },
           TaskTemplate: {
             ContainerSpec: {
