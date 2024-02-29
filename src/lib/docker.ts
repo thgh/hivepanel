@@ -1,4 +1,5 @@
 import http from 'node:http'
+import { NetworkInterfaceInfo, networkInterfaces } from 'node:os'
 
 import axios from 'axios'
 import type {
@@ -36,11 +37,34 @@ export const handleService = (
   }
 }
 
+export function getAddressOptions() {
+  const ips = Object.entries(networkInterfaces())
+    .filter(([key]) => key.startsWith('eth') || key.startsWith('en'))
+    .flatMap(([, value]) => value || [])
+    .sort((a, b) => ipScore(b) - ipScore(a))
+  return ips
+}
+
+export function ipScore(ip: NetworkInterfaceInfo) {
+  let score = ip.family === 'IPv4' ? 4 : 0
+  if (ip.address.startsWith('192.168.')) score--
+  if (ip.address.startsWith('10.')) score -= 2
+  return score
+}
+
+export function ip4Score(address: string) {
+  let score = 0
+  if (address.startsWith('192.168.')) score--
+  if (address.startsWith('10.')) score -= 2
+  return score
+}
+
 function isServiceSpec(req: Request) {
   return (
     req.body.Name &&
     req.body.Labels &&
     (req.body.TaskTemplate ||
+      req.body.Labels['hive.tint'] ||
       req.body.Labels['hive.deploy.image'] ||
       req.body.Labels['hive.hostnames'])
   )

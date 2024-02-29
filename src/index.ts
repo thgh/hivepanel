@@ -6,7 +6,7 @@ import express from 'express'
 
 import { serverRouter } from './api'
 import { setupWebsocket } from './lib/docker'
-import { buildDate, version } from './lib/env'
+import { buildDate, URL, version } from './lib/env'
 import { checkAuth, state } from './lib/state'
 
 let hasPrintedBanner = false
@@ -34,17 +34,21 @@ export function createServer(port: number) {
     const server = app.listen(port, async () => {
       // If given port was 0, the actual port is assigned dynamically
       const port = (server.address() as AddressInfo).port
-      state.origin = `http://localhost:${port}`
-      const credentials = await checkAuth().catch((err) => {
-        console.log('credentials.err', err)
-      })
-      console.log(
-        `Server is listening on ${state.origin}${
-          credentials ? `/#password=${credentials.password}` : ''
-        }`
-      )
+
+      let address = (state.origin = addPort(URL, port))
+
+      // Add credentials if swarm is not initialized
+      const credentials = await checkAuth()
+      if (credentials) address += '/#password=' + credentials.password
+
+      console.log(`Server is running on ${address}`)
+
       resolve(server)
     })
     setupWebsocket(server)
   })
+}
+
+function addPort(host: string, port: number) {
+  return host + (port === 80 ? '' : ':' + port)
 }

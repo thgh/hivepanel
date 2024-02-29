@@ -451,3 +451,36 @@ export interface IOneClickTemplate {
     variables: IOneClickVariable[]
   }
 }
+
+export interface IAppDefinitionBase {
+  description?: string
+  deployedVersion: number
+  notExposeAsWebApp: boolean
+  hasPersistentData: boolean
+  hasDefaultSubDomainSsl: boolean
+  containerHttpPort: number
+  httpAuth?: {
+    user: string
+    password?: string
+    passwordHashed?: string
+  }
+  captainDefinitionRelativeFilePath: string
+
+  forceSsl: boolean
+  websocketSupport: boolean
+  nodeId?: string
+  instanceCount: number
+  preDeployFunction?: string
+  serviceUpdateOverride?: string
+  customNginxConfig?: string
+  redirectDomain?: string
+  networks: string[]
+  customDomain: IAppCustomDomain[]
+  tags?: IAppTag[]
+  ports: IAppPort[]
+  volumes: IAppVolume[]
+  envVars: IAppEnvVar[]
+
+  versions: IAppVersion[]
+  appDeployTokenConfig?: AppDeployTokenConfig
+}

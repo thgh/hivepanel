@@ -6,7 +6,7 @@ import { createServer } from 'vite'
 import { serverRouter } from './api'
 import { enableDNS } from './api/dns'
 import { setupWebsocket } from './lib/docker'
-import { devPort } from './lib/env'
+import { devPort, HOST } from './lib/env'
 import { checkAuth, state } from './lib/state'
 
 enableDNS()
@@ -30,18 +30,21 @@ if (global.closeSignal) {
 
 // First start
 // @ts-expect-error
-global.viteInstance ||= await createServer({ server: { middlewareMode: true } })
+global.viteInstance ||= await createServer({
+  server: { middlewareMode: true, hmr: { port: 23087 } },
+})
 app.use(global.viteInstance.middlewares)
 const server = app.listen(devPort, async () => {
-  state.origin = `http://localhost:${devPort}`
+  const url =
+    process.env.HIVEPANEL_URL ||
+    'http://' + (HOST || 'localhost') + (devPort === 80 ? '' : ':' + devPort)
+  let address = (state.origin = url)
+
+  // Add credentials if swarm is not initialized
   const credentials = await checkAuth()
-  if (credentials) {
-    console.log(
-      `📦 Hivepanel is running on http://localhost:${devPort}/#password=${credentials.password}`
-    )
-  } else {
-    console.log(`📦 Hivepanel is running on http://localhost:${devPort}`)
-  }
+  if (credentials) address += '/#password=' + credentials.password
+
+  console.log(`📦 Hivepanel is running on ${address}`)
 })
 global.closeSignal = new Promise((resolve) =>
   server.on('close', () => resolve(1))

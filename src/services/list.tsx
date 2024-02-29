@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { EditServiceSheet } from '@/components/EditServiceSheet'
+import MigrateFromCaprover from '@/components/MigrateFromCaprover'
 import { ServiceTable } from '@/components/ServiceTable'
 import { Card, CardHeader } from '@/components/ui/card'
 import { humanDateSecond } from '@/lib/date'
@@ -24,15 +25,25 @@ export default function ServiceList() {
     const Name =
       name === 'hivepanel'
         ? 'hivepanel'
-        : prompt('Service name', name.split('/')[0])
+        : name === 'captain-captain'
+          ? 'captain-captain'
+          : prompt('Service name', name.split('/')[0])
     if (!Name) return
     const Image =
       name === 'ping'
         ? 'alpine'
         : name === 'hivepanel'
           ? 'thgh/hivepanel'
-          : prompt('Container image', name)
+          : prompt(
+              'Container image',
+              name === 'captain-captain' ? 'caprover/caprover:1.11.0' : name
+            )
     if (!Image) return
+    if (
+      Name === 'captain-captain' &&
+      !confirm('Prune containers? (potential data loss)')
+    )
+      return
     await engine.post<any, any, ServiceSpec>('/services/create', {
       Name,
       TaskTemplate: {
@@ -74,9 +85,11 @@ export default function ServiceList() {
           : undefined,
       Labels: {
         'hive.deploy.image': Image,
-        'hive.hostnames': window.location.origin.includes('localhost')
-          ? Name + '.localhost'
-          : undefined,
+        'hive.hostnames':
+          !Name.startsWith('captain-captain') &&
+          window.location.origin.includes('localhost')
+            ? Name + '.localhost'
+            : undefined,
         'hive.tint': Math.floor(Math.random() * 360).toString(),
       },
       Mode: { Replicated: { Replicas: 1 } },
@@ -132,6 +145,15 @@ export default function ServiceList() {
           </button>
           <button
             className="group text-left"
+            onClick={() => launch('captain-captain')}
+            type="button"
+          >
+            <Card>
+              <CardHeader className="w-44 font-semibold">Caprover</CardHeader>
+            </Card>
+          </button>
+          <button
+            className="group text-left"
             onClick={() => launch('postgres')}
             type="button"
           >
@@ -171,6 +193,11 @@ export default function ServiceList() {
         </h1>
         <ServiceTable data={withMemory || []} />
         <div className="h-12"></div>
+        <div className="">
+          {swr.data?.data.some((s) => s.Spec.Name?.startsWith('captain-')) && (
+            <MigrateFromCaprover />
+          )}
+        </div>
         <div className="flex flex-wrap gap-4">
           {/* <OverlayNetworkButton />
           <EnableCaddy />

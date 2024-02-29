@@ -7,6 +7,23 @@ export default handleService(async (spec) => {
 
   if (!spec.Labels['hive.hostnames']) return
 
+  // TODO: check if any other reverse proxy is running
+  if (spec.Labels['hive.caddy'] === 'custom') return
+
+  const port = spec.Labels['hive.port'] || ''
+
+  spec.Labels = {
+    ...spec.Labels,
+    caddy: splitHostnames(spec.Labels['hive.hostnames'])
+      .map((h) =>
+        h.endsWith('localhost') || h.endsWith('traefik.me') ? 'http://' + h : h
+      )
+      .filter(Boolean)
+      .join(', '),
+    'caddy.reverse_proxy': `{{upstreams${port ? ' ' + port : ''}}}`,
+    // 'caddy.tls': 'internal',
+  }
+
   let created = swarm.get('hive.caddy.service')
   // Check if caddy service exists
   if (created) {
@@ -29,7 +46,10 @@ export default handleService(async (spec) => {
     )
     console.log('used ports', usedPorts)
     if (usedPorts.includes(80) || usedPorts.includes(443)) {
-      return console.log('port 80 or 443 is in use')
+      return console.log(
+        'port 80 or 443 is in use',
+        spec.Labels['hive.hostnames']
+      )
     }
 
     const volume = 'hive_caddy'
@@ -38,6 +58,8 @@ export default handleService(async (spec) => {
     console.log('caddy', volume, service)
 
     // TODO: check if port 80/443 are in use
+
+    const network = await getCustomNetwork()
 
     // Create caddy service
     const caddy = await engine.post('/services/create', {
@@ -57,8 +79,9 @@ export default handleService(async (spec) => {
               Type: 'volume',
             },
           ],
-          Environment: ['CADDY_INGRESS_NETWORKS=hivenet'],
+          Env: ['CADDY_INGRESS_NETWORKS=' + network],
         },
+        Networks: [{ Target: network }],
       },
       EndpointSpec: {
         Ports: [
@@ -80,21 +103,40 @@ export default handleService(async (spec) => {
     // // Extract tar in a container
     // console.log('caddy containers', containers.data.length, containers.data[0])
   }
-
-  // TODO: check if any other reverse proxy is running
-  if (spec.Labels['hive.caddy'] === 'custom') return
-
-  const port = spec.Labels['hive.port'] || ''
-
-  spec.Labels = {
-    ...spec.Labels,
-    caddy: splitHostnames(spec.Labels['hive.hostnames'])
-      .map((h) =>
-        h.endsWith('localhost') || h.endsWith('traefik.me') ? 'http://' + h : h
-      )
-      .filter(Boolean)
-      .join(', '),
-    'caddy.reverse_proxy': `{{upstreams${port ? ' ' + port : ''}}}`,
-    // 'caddy.tls': 'internal',
-  }
 })
+
+type Network = {
+  Name: 'captain-overlay-network' | 'ingress' | 'hivenet'
+  Driver: 'overlay'
+  Scope: 'swarm'
+}
+
+async function getCustomNetwork() {
+  const networks = await engine.get<Network[]>('/networks', {
+    validateStatus: () => true,
+    timeout: 4000,
+  })
+  const options = networks.data
+    .filter((n) => n.Driver === 'overlay' && n.Scope === 'swarm')
+    .map((s) => s.Name)
+    .sort((a, b) => a.localeCompare(b))
+
+  // Return the other network if there are only two options
+  if (options.length === 2 && options.some((n) => n === 'ingress'))
+    return options.find((n) => n !== 'ingress')
+
+  if (options.length < 2) {
+    await engine.post('/networks/create', {
+      Attachable: true,
+      CheckDuplicate: true,
+      Driver: 'overlay',
+      Name: 'hivenet',
+      Scope: 'swarm',
+    })
+    console.log('Created default network: hivenet')
+    swarm.set('hive.network.default', 'hivenet')
+    return 'hivenet'
+  }
+
+  console.log('Multiple networks found', options)
+}

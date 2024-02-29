@@ -148,6 +148,7 @@ function WithoutDockerSwarm() {
           <Button
             onClick={async () => {
               const ok = await axios.post('/api/onboarding/init-swarm')
+              console.log('init-swarm', ok.data, ok.status)
               mutate()
               mutateState()
               if (ok.data?.message && !ok.data.message.includes('uccessful'))

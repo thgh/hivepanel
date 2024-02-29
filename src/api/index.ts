@@ -6,6 +6,7 @@ import * as config from './config'
 import * as diskUsage from './disk-usage'
 import * as engine from './engine'
 import { authMiddleware } from './middleware/auth'
+import caprover, { migrateFromCaprover } from './middleware/caprover'
 import deploy from './middleware/deploy'
 import { hookMiddleware } from './middleware/hook'
 import Networks from './middleware/Networks'
@@ -36,8 +37,11 @@ serverRouter.get('/one-click-apps-logos/:name', async (req, res) => {
   })
   ok.data.pipe(res)
 })
+serverRouter.get('/migrate-from-caprover', migrateFromCaprover)
+serverRouter.post('/migrate-from-caprover', migrateFromCaprover)
 
 // Service spec middleware
+serverRouter.use(caprover)
 serverRouter.use(Networks)
 serverRouter.use(UpdateConfig)
 serverRouter.use(deploy)

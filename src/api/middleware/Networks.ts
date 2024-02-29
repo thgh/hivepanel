@@ -2,6 +2,8 @@ import { engine, handleService } from '@/lib/docker'
 import { swarm } from '@/lib/state'
 
 export default handleService(async (spec) => {
+  if (spec.Name === 'captain-captain') return
+
   if (!spec.TaskTemplate) spec.TaskTemplate = {}
 
   // Keep existing networks
@@ -11,12 +13,10 @@ export default handleService(async (spec) => {
     const Target =
       // Explicit choice
       swarm.get('hive.network.default') ||
-      // Caprover support
-      (await getCustomNetwork()) ||
-      // Default
-      'ingress'
+      // Use existing network
+      (await getCustomNetwork())
 
-    spec.TaskTemplate.Networks = [{ Target }]
+    if (Target) spec.TaskTemplate.Networks = [{ Target }]
   }
 })
 
@@ -40,5 +40,18 @@ async function getCustomNetwork() {
   if (options.length === 2 && options.some((n) => n === 'ingress'))
     return options.find((n) => n !== 'ingress')
 
-  if (options.length > 2) console.log('Multiple networks found', options)
+  if (options.length < 2) {
+    await engine.post('/networks/create', {
+      Attachable: true,
+      CheckDuplicate: true,
+      Driver: 'overlay',
+      Name: 'hivenet',
+      Scope: 'swarm',
+    })
+    console.log('Created default network: hivenet')
+    swarm.set('hive.network.default', 'hivenet')
+    return 'hivenet'
+  }
+
+  console.log('Multiple networks found', options)
 }

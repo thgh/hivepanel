@@ -42,6 +42,10 @@ export type ServiceLabel =
   | 'hive.deploy.Dockerfile'
   | 'hive.deploy.image'
   | 'hive.deploy.static'
+  /** Meta information about this service */
+  | 'hive.description'
+  /** Tags for easy filtering */
+  | `hive.tag.${string}`
   | 'hive.hostnames'
   /** Set up reverse proxy using caddy */
   | 'hive.caddy'

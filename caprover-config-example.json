@@ -1,0 +1,60 @@
+{
+  "namespace": "captain",
+  "customDomain": "panel.example.org",
+  "emailAddress": "hivepanel@thomasg.be",
+  "hasRootSsl": true,
+  "forceRootSsl": true,
+  "hashedPassword": "$2a$10$DN/pMy4f9cPnTrR9AjpDyeBiPoGwyXJC/PXXhXbR09HbP6UWWv/Y.",
+  "appDefinitions": {
+    "demo": {
+      "hasPersistentData": true,
+      "description": "Example db",
+      "instanceCount": 1,
+      "captainDefinitionRelativeFilePath": "./captain-definition",
+      "networks": ["captain-overlay-network"],
+      "envVars": [
+        {
+          "key": "EXAMPLE",
+          "value": "OK"
+        }
+      ],
+      "volumes": [],
+      "ports": [],
+      "versions": [
+        {
+          "version": 0,
+          "timeStamp": "2024-01-01T01:01:15.539Z",
+          "deployedImageName": "img-captain-demo:0",
+          "gitHash": ""
+        },
+        {
+          "version": 1,
+          "timeStamp": "2024-01-01T01:01:20.023Z",
+          "deployedImageName": "nginxdemos/hello",
+          "gitHash": ""
+        }
+      ],
+      "deployedVersion": 1,
+      "notExposeAsWebApp": false,
+      "customDomain": [
+        {
+          "publicDomain": "other.example.org",
+          "hasSsl": true
+        }
+      ],
+      "hasDefaultSubDomainSsl": true,
+      "forceSsl": false,
+      "websocketSupport": false,
+      "containerHttpPort": 8086,
+      "nodeId": "somenodeid",
+      "preDeployFunction": "",
+      "serviceUpdateOverride": "",
+      "appDeployTokenConfig": {
+        "enabled": true,
+        "appDeployToken": "demo-deploy-token"
+      },
+      "redirectDomain": "",
+      "tags": []
+    }
+  }
+}

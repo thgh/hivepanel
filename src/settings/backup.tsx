@@ -15,6 +15,7 @@ type ConfigBackup = {
 
 export default function SettingsBackup() {
   const [config, setConfig] = useState<ConfigBackup>()
+  const server = useServerState()
   return (
     <main className="p-6 w-full">
       <div className="space-y-0.5 mb-6">
@@ -65,6 +66,8 @@ export default function SettingsBackup() {
           </Button>
         </div>
       )}
+
+      <pre>{JSON.stringify(server.data?.swarm?.Spec.Labels, null, 2)}</pre>
     </main>
   )
 }
