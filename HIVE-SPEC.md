@@ -65,7 +65,7 @@ If the value is number between 0 and 360, it should be used as the background hu
 
 ### hive.user.\*
 
-This label enables authentication for a service. The value must be a hashed password. It's recommended to set this label on the hivepanel service.
+This label enables authentication for a service. The value must be hashed using bcrypt. It's recommended to set this label on the hivepanel service.
 
 ### hive.auth
 

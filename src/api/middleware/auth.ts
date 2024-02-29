@@ -1,3 +1,4 @@
+import { compareSync, hashSync } from 'bcryptjs'
 import { Request, Response } from 'express'
 
 import { str62 } from '@/lib/random'
@@ -28,9 +29,9 @@ export async function authMiddleware(
         if (!username) username = session.email
         if (!password) password = swarm.users.get(session.email)
         // Memory
-        swarm.users.set(username, password)
+        swarm.users.set(username, hashSync(password))
         // Persist
-        swarm.set(`hive.panel.user.${username}`, password)
+        swarm.set(`hive.panel.user.${username}`, hashSync(password))
         if (username !== session.email)
           swarm.set(`hive.panel.user.${session.email}`, '')
         return res.json({ message: 'User updated', username })
@@ -40,16 +41,15 @@ export async function authMiddleware(
       req.session = session
       return next()
     }
-    console.log(req.url, 'invalid session', sessionId)
+    // console.log(req.url, 'invalid session', sessionId)
   }
 
   if (req.method === 'POST' && req.url === '/auth/login') {
     if (!req.body.email) req.body.email = 'admin'
     const { email, password } = req.body
     await checkAuth()
-    const data = swarm.users.get(email)
-    // TODO: bcrypt
-    if (data && data === password) {
+    const hash = swarm.users.get(email)
+    if (hash && compareSync(password, hash)) {
       const sessionId = str62(20)
       swarm.set(`hive.session.${sessionId}`, JSON.stringify({ email }))
       res.cookie(SESSION, sessionId, {

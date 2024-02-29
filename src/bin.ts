@@ -20,10 +20,6 @@ async function main() {
   // Assume everything is ready to go
   const ok = await engine.get<Swarm>('/swarm', { validateStatus: () => true })
   if (ok.status < 222) {
-    console.log(
-      'Docker Swarm is ready',
-      ok.data?.Spec?.Labels?.['hive.panel.name']
-    )
     createServer(23088)
     // Open browser if possible
     exec('open http://localhost:23088')

@@ -59,7 +59,7 @@ describe('integration', () => {
     expect(first.isDockerRunning).toBe(true)
     expect(first.origin).toMatch(/^http:\/\/localhost:\d+$/)
     expect(first.swarm).toBeFalsy()
-    expect(first.swarmLabelBuffer?.['hive.panel.user.admin']).toHaveLength(20)
+    expect(first.swarmLabelBuffer?.['hive.panel.user.admin'][0]).toBe('$')
 
     // Initialize swarm
     const init = await panel.post('/api/onboarding/init-swarm')

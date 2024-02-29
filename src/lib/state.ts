@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process'
 
+import { hashSync } from 'bcryptjs'
 import type { NetworkCreateOptions, Swarm } from 'dockerode'
 import { SWRResponse } from 'swr'
 
@@ -146,7 +147,7 @@ export async function checkAuth() {
   const password = state.fallbackPassword || str62(20)
   if (!state.fallbackPassword) {
     state.fallbackPassword = password
-    swarm.set('hive.panel.user.admin', password)
+    swarm.set('hive.panel.user.admin', hashSync(password))
     console.log('🔐 Generated default credentials')
   }
 
@@ -162,7 +163,7 @@ export async function resetAuth(email = 'admin') {
   // TODO: bcrypt
   const password = str62(20)
   state.fallbackPassword = password
-  swarm.set(`hive.panel.user.${email}`, password)
+  swarm.set(`hive.panel.user.${email}`, hashSync(password))
   console.log('🔐 Generated password for ' + email)
 
   return { email, password }
